@@ -1,74 +1,41 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial06.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
-
-
-//--------------------------------------------------------------------------------------
-// Constant Buffer Variables
-//--------------------------------------------------------------------------------------
-cbuffer ConstantBuffer : register( b0 )
-{
-	matrix World;
-	matrix View;
-	matrix Projection;
-	float4 vLightDir[2];
-	float4 vLightColor[2];
-	float4 vOutputColor;
+cbuffer ConstantBuffer:register(b0){
+	matrix wm;
+	matrix vm;
+	matrix pm;
+	float4 l_d[2];
+	float4 l_c[2];
+	float4 o_c;
 }
 
 
-//--------------------------------------------------------------------------------------
-struct VS_INPUT
-{
-    float4 Pos : POSITION;
-    float3 Norm : NORMAL;
-};
 
-struct PS_INPUT
-{
-    float4 Pos : SV_POSITION;
-    float3 Norm : TEXCOORD0;
+struct PixelShaderInput{
+	float4 Pos:SV_POSITION;
+	float3 Norm:TEXCOORD0;
 };
 
 
-//--------------------------------------------------------------------------------------
-// Vertex Shader
-//--------------------------------------------------------------------------------------
-PS_INPUT VS( VS_INPUT input )
-{
-    PS_INPUT output = (PS_INPUT)0;
-    output.Pos = mul( input.Pos, World );
-    output.Pos = mul( output.Pos, View );
-    output.Pos = mul( output.Pos, Projection );
-    output.Norm = mul( float4( input.Norm, 1 ), World ).xyz;
 
-    return output;
+PixelShaderInput vertex_shader(float4 p:POSITION,float3 n:NORMAL){
+	PixelShaderInput o=(PixelShaderInput)0;
+	o.Pos=mul(mul(mul(p,wm),vm),pm);
+	o.Norm=mul(float4(n,1),wm).xyz;
+	return o;
 }
 
 
-//--------------------------------------------------------------------------------------
-// Pixel Shader
-//--------------------------------------------------------------------------------------
-float4 PS( PS_INPUT input) : SV_Target
-{
-    float4 finalColor = 0;
 
-    //do NdotL lighting for 2 lights
-    for(int i=0; i<2; i++)
-    {
-        finalColor += saturate( dot( (float3)vLightDir[i],input.Norm) * vLightColor[i] );
-    }
-    finalColor.a = 1;
-    return finalColor;
+float4 pixel_shader(float4 Pos:SV_POSITION,float3 Norm:TEXCOORD0):SV_Target{
+	float4 o=0;
+	for(int j=0;j<2;j++){
+		o+=saturate(dot((float3)l_d[j],Norm)*l_c[j]);
+	}
+	o.a=1;
+	return o;
 }
 
 
-//--------------------------------------------------------------------------------------
-// PSSolid - render a solid color
-//--------------------------------------------------------------------------------------
-float4 PSSolid( PS_INPUT input) : SV_Target
-{
-    return vOutputColor;
+
+float4 pixel_shader_solid(float4 Pos:SV_POSITION,float3 Norm:TEXCOORD0):SV_Target{
+	return o_c;
 }

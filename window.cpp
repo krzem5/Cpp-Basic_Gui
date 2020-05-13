@@ -18,104 +18,25 @@
 
 
 
-ObjectBuffer::ObjectBuffer(){
-	//
+ObjectBuffer::ObjectBuffer(uint sz){
+	this->sz=sz;
+	this->data=new ObjectBufferData();
 }
 
 
 
-ObjectBuffer::~ObjectBuffer(){
-	this->_vb->Release();
-	this->_ib->Release();
+void ObjectBuffer::ObjectBufferData::add_vertexes(std::initializer_list<float> vl){
+	for (std::initializer_list<float>::iterator i=vl.begin();i!=vl.end();i++){
+		this->vertexes.push_back(*i);
+	}
 }
 
 
 
-void ObjectBuffer::use_renderer(Renderer* r){
-	this->r=r;
-}
-
-
-
-void ObjectBuffer::update(){
-	Vertex vl[]={
-		{ Vector3(-1.0f,1.0f,-1.0f),Vector3(0.0f,1.0f,0.0f) },
-		{ Vector3(1.0f,1.0f,-1.0f),Vector3(0.0f,1.0f,0.0f) },
-		{ Vector3(1.0f,1.0f,1.0f),Vector3(0.0f,1.0f,0.0f) },
-		{ Vector3(-1.0f,1.0f,1.0f),Vector3(0.0f,1.0f,0.0f) },
-
-		{ Vector3(-1.0f,-1.0f,-1.0f),Vector3(0.0f,-1.0f,0.0f) },
-		{ Vector3(1.0f,-1.0f,-1.0f),Vector3(0.0f,-1.0f,0.0f) },
-		{ Vector3(1.0f,-1.0f,1.0f),Vector3(0.0f,-1.0f,0.0f) },
-		{ Vector3(-1.0f,-1.0f,1.0f),Vector3(0.0f,-1.0f,0.0f) },
-
-		{ Vector3(-1.0f,-1.0f,1.0f),Vector3(-1.0f,0.0f,0.0f) },
-		{ Vector3(-1.0f,-1.0f,-1.0f),Vector3(-1.0f,0.0f,0.0f) },
-		{ Vector3(-1.0f,1.0f,-1.0f),Vector3(-1.0f,0.0f,0.0f) },
-		{ Vector3(-1.0f,1.0f,1.0f),Vector3(-1.0f,0.0f,0.0f) },
-
-		{ Vector3(1.0f,-1.0f,1.0f),Vector3(1.0f,0.0f,0.0f) },
-		{ Vector3(1.0f,-1.0f,-1.0f),Vector3(1.0f,0.0f,0.0f) },
-		{ Vector3(1.0f,1.0f,-1.0f),Vector3(1.0f,0.0f,0.0f) },
-		{ Vector3(1.0f,1.0f,1.0f),Vector3(1.0f,0.0f,0.0f) },
-
-		{ Vector3(-1.0f,-1.0f,-1.0f),Vector3(0.0f,0.0f,-1.0f) },
-		{ Vector3(1.0f,-1.0f,-1.0f),Vector3(0.0f,0.0f,-1.0f) },
-		{ Vector3(1.0f,1.0f,-1.0f),Vector3(0.0f,0.0f,-1.0f) },
-		{ Vector3(-1.0f,1.0f,-1.0f),Vector3(0.0f,0.0f,-1.0f) },
-
-		{ Vector3(-1.0f,-1.0f,1.0f),Vector3(0.0f,0.0f,1.0f) },
-		{ Vector3(1.0f,-1.0f,1.0f),Vector3(0.0f,0.0f,1.0f) },
-		{ Vector3(1.0f,1.0f,1.0f),Vector3(0.0f,0.0f,1.0f) },
-		{ Vector3(-1.0f,1.0f,1.0f),Vector3(0.0f,0.0f,1.0f) },
-	};
-	ushort il[] =
-	{
-		3,1,0,
-		2,1,3,
-
-		6,4,5,
-		7,4,6,
-
-		11,9,8,
-		10,9,11,
-
-		14,12,13,
-		15,12,14,
-
-		19,17,16,
-		18,17,19,
-
-		22,20,21,
-		23,20,22
-	};
-	this->r->_i_ob(&this->_vb,&this->_ib,vl,il,sizeof(vl)/sizeof(Vertex),sizeof(il)/sizeof(ushort));
-}
-
-
-
-void ObjectBuffer::render(){
-	ushort il[] =
-	{
-		3,1,0,
-		2,1,3,
-
-		6,4,5,
-		7,4,6,
-
-		11,9,8,
-		10,9,11,
-
-		14,12,13,
-		15,12,14,
-
-		19,17,16,
-		18,17,19,
-
-		22,20,21,
-		23,20,22
-	};
-	this->r->_r_ob(&this->_vb,&this->_ib,sizeof(il)/sizeof(ushort));
+void ObjectBuffer::ObjectBufferData::add_indicies(std::initializer_list<ushort> il){
+	for (std::initializer_list<ushort>::iterator i=il.begin();i!=il.end();i++){
+		this->indicies.push_back(*i);
+	}
 }
 
 
@@ -127,6 +48,10 @@ Renderer::Renderer(){
 
 
 Renderer::~Renderer(){
+	this->_vsl.clear();
+	this->_psl.clear();
+	this->_cbl.clear();
+	this->_obl.clear();
 	this->_d3_dc->ClearState();
 	this->_d3_d->Release();
 	this->_d3_d1->Release();
@@ -135,6 +60,8 @@ Renderer::~Renderer(){
 	this->_d3_sc->Release();
 	this->_d3_sc1->Release();
 	this->_d3_rt->Release();
+	this->_d3_ds->Release();
+	this->_d3_sv->Release();
 }
 
 
@@ -143,10 +70,10 @@ ulong Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const char* v
 	this->_vsl[this->_n_vsl_id++]=nullptr;
 	ID3DBlob* b=this->_compile_shader(fp,e,v);
 	HRESULT hr=this->_d3_d->CreateVertexShader(b->GetBufferPointer(),b->GetBufferSize(),nullptr,&this->_vsl[this->_n_vsl_id-1]);
-	ID3D11InputLayout* vl=nullptr;
 	if (FAILED(hr)){
 		std::cout<<"ERR";
 	}
+	ID3D11InputLayout* vl=nullptr;
 	hr=this->_d3_d->CreateInputLayout(il,ill,b->GetBufferPointer(),b->GetBufferSize(),&vl);
 	if (FAILED(hr)){
 		std::cout<<"ERR";
@@ -187,8 +114,21 @@ ulong Renderer::create_constant_buffer(uint cbl){
 
 
 
+ulong Renderer::create_object_buffer(uint sz){
+	this->_obl[this->_n_obl_id++]=new ObjectBuffer(sz*sizeof(float));
+	return this->_n_obl_id-1;
+}
+
+
+
 void Renderer::update_constant_buffer(ulong cb_id,const void* dt){
 	this->_d3_dc->UpdateSubresource(this->_cbl[cb_id],0,nullptr,dt,0,0);
+}
+
+
+
+ObjectBuffer::ObjectBufferData* Renderer::get_object_buffer(ulong ob_id){
+	return this->_obl[ob_id]->data;
 }
 
 
@@ -214,8 +154,50 @@ void Renderer::use_pixel_shader(ulong ps_id,ulong cb_id){
 
 
 
+void Renderer::update_object_buffer(ulong ob_id){
+	this->_obl[ob_id]->ln=uint(this->_obl[ob_id]->data->vertexes.size());
+	D3D11_BUFFER_DESC bd={
+		uint(this->_obl[ob_id]->data->vertexes.size())*sizeof(float),
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_VERTEX_BUFFER,
+		0,
+		0,
+		0
+	};
+	D3D11_SUBRESOURCE_DATA dt={
+		this->_obl[ob_id]->data->vertexes.data(),
+		0,
+		0
+	};
+	HRESULT hr=this->_d3_d->CreateBuffer(&bd,&dt,&this->_obl[ob_id]->vb);
+	if (FAILED(hr)){
+		std::cout<<"ERR"<<std::endl;
+	}
+	bd.Usage=D3D11_USAGE_DEFAULT;
+	bd.ByteWidth=uint(this->_obl[ob_id]->data->indicies.size())*sizeof(ushort);
+	bd.BindFlags=D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags=0;
+	dt.pSysMem=this->_obl[ob_id]->data->indicies.data();
+	hr=this->_d3_d->CreateBuffer(&bd,&dt,&this->_obl[ob_id]->ib);
+	if (FAILED(hr)){
+		std::cout<<"ERR"<<std::endl;
+	}
+}
+
+
+
+void Renderer::render_object_buffer(ulong ob_id){
+	uint off=0;
+	this->_d3_dc->IASetVertexBuffers(0,1,&this->_obl[ob_id]->vb,&this->_obl[ob_id]->sz,&off);
+	this->_d3_dc->IASetIndexBuffer(this->_obl[ob_id]->ib,DXGI_FORMAT_R16_UINT,0);
+	this->_d3_dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->_d3_dc->DrawIndexed(this->_obl[ob_id]->ln,0,0);
+}
+
+
+
 void Renderer::show(){
-	this->_d3_sc->Present(0,0);
+	this->_d3_sc->Present(0,DXGI_PRESENT_DO_NOT_WAIT);
 }
 
 
@@ -295,96 +277,60 @@ void Renderer::_i(HWND _hwnd){
 	dxgi_f->Release();
 	ID3D11Texture2D* bb=nullptr;
 	hr=this->_d3_sc->GetBuffer(0,__uuidof(ID3D11Texture2D),(void**)&bb);
-	if( FAILED( hr ) ){
+	if (FAILED(hr)){
 		std::cout<<"ERR"<<std::endl;
 		return;
 	}
 	hr=this->_d3_d->CreateRenderTargetView(bb,nullptr,&this->_d3_rt);
-	if( FAILED( hr ) ){
+	if (FAILED(hr)){
 		std::cout<<"ERR"<<std::endl;
 		return;
 	}
 	bb->Release();
-	///////////////////////////////
-	D3D11_TEXTURE2D_DESC descDepth = {};
-	descDepth.Width = width;
-	descDepth.Height = height;
-	descDepth.MipLevels = 1;
-	descDepth.ArraySize = 1;
-	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	descDepth.SampleDesc.Count = 1;
-	descDepth.SampleDesc.Quality = 0;
-	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	descDepth.CPUAccessFlags = 0;
-	descDepth.MiscFlags = 0;
-	hr = this->_d3_d->CreateTexture2D( &descDepth, nullptr, &this->_d3_ds );
-	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
-	descDSV.Format = descDepth.Format;
-	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	descDSV.Texture2D.MipSlice = 0;
-	if( FAILED( hr ) ){
+	D3D11_TEXTURE2D_DESC dd={
+		width,
+		height,
+		1,
+		1,
+		DXGI_FORMAT_D24_UNORM_S8_UINT,
+		{
+			1,
+			0
+		},
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_DEPTH_STENCIL,
+		0,
+		0
+	};
+	hr=this->_d3_d->CreateTexture2D(&dd,nullptr,&this->_d3_ds);
+	if (FAILED(hr)){
 		std::cout<<"ERR"<<std::endl;
 		return;
 	}
-	hr = this->_d3_d->CreateDepthStencilView( this->_d3_ds, &descDSV, &this->_d3_sv );
-	if( FAILED( hr ) ){
+	D3D11_DEPTH_STENCIL_VIEW_DESC d_dsv={
+		dd.Format,
+		D3D11_DSV_DIMENSION_TEXTURE2D,
+		0
+	};
+	d_dsv.Texture2D.MipSlice=0;
+	hr=this->_d3_d->CreateDepthStencilView(this->_d3_ds,&d_dsv,&this->_d3_sv);
+	if (FAILED(hr)){
 		std::cout<<"ERR"<<std::endl;
 		return;
 	}
-
-	this->_d3_dc->OMSetRenderTargets( 1, &this->_d3_rt, this->_d3_sv );
-	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)width;
-	vp.Height = (FLOAT)height;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
+	this->_d3_dc->OMSetRenderTargets(1,&this->_d3_rt,this->_d3_sv);
+	D3D11_VIEWPORT vp={
+		0,
+		0,
+		(float)width,
+		(float)height,
+		0,
+		1
+	};
 	this->_d3_dc->RSSetViewports(1,&vp);
-	//////////////////////
 	this->world_matrix=DirectX::XMMatrixIdentity();
 	this->view_matrix=DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0.0f,4.0f,-10.0f,0.0f),DirectX::XMVectorSet(0.0f,1.0f,0.0f,0.0f),DirectX::XMVectorSet(0.0f,1.0f,0.0f,0.0f));
 	this->projection_matrix=DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV4,width/(float)height,0.01f,1000.0f);
-}
-
-
-
-void Renderer::_i_ob(ID3D11Buffer** vb,ID3D11Buffer** ib,const Vertex vl[],const ushort il[],int vll,int ill){
-	D3D11_BUFFER_DESC bd={
-		sizeof(Vertex)*vll,
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_VERTEX_BUFFER,
-		0,
-		0,
-		0
-	};
-	D3D11_SUBRESOURCE_DATA dt={
-		vl,
-		0,
-		0
-	};
-	HRESULT hr=this->_d3_d->CreateBuffer(&bd,&dt,vb);
-	if (FAILED(hr)){
-		std::cout<<"ERR"<<std::endl;
-	}
-	bd.Usage=D3D11_USAGE_DEFAULT;
-	bd.ByteWidth=sizeof(ushort)*ill;
-	bd.BindFlags=D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags=0;
-	dt.pSysMem=il;
-	this->_d3_d->CreateBuffer(&bd,&dt,ib);
-}
-
-
-
-void Renderer::_r_ob(ID3D11Buffer** vb,ID3D11Buffer** ib,uint il){
-	uint sz=sizeof(Vertex);
-	uint off=0;
-	this->_d3_dc->IASetVertexBuffers(0,1,vb,&sz,&off);
-	this->_d3_dc->IASetIndexBuffer(*ib,DXGI_FORMAT_R16_UINT,0);
-	this->_d3_dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	this->_d3_dc->DrawIndexed(il,0,0);
 }
 
 
@@ -395,15 +341,23 @@ ID3DBlob* Renderer::_compile_shader(const wchar_t* fp,const char* e,const char* 
 	HRESULT hr=D3DCompileFromFile(fp,nullptr,nullptr,e,v,D3DCOMPILE_ENABLE_STRICTNESS,0,&o,&err);
 	if (FAILED(hr)){
 		if (err!=nullptr){
-			OutputDebugStringA(reinterpret_cast<const char*>(err->GetBufferPointer()));
+			std::cout<<reinterpret_cast<const char*>(err->GetBufferPointer());
 			err->Release();
 		}
 		return nullptr;
 	}
-	if (err!=nullptr){
-		err->Release();
-	}
 	return o;
+}
+
+
+
+ulong RendererHelper::create_object_buffer_box(Renderer* r,Vector3 p,float sc){
+	ulong ob=r->create_object_buffer(6);
+	ObjectBuffer::ObjectBufferData* ob1=r->get_object_buffer(ob);
+	ob1->add_vertexes({-sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,-1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,sc+p.z,-1,0,0,sc+p.x,-sc+p.y,sc+p.z,1,0,0,sc+p.x,-sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,sc+p.z,1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,sc+p.y,sc+p.z,0,0,1,-sc+p.x,sc+p.y,sc+p.z,0,0,1});
+	ob1->add_indicies({3,1,0,2,1,3,6,4,5,7,4,6,11,9,8,10,9,11,14,12,13,15,12,14,19,17,16,18,17,19,22,20,21,23,20,22});
+	r->update_object_buffer(ob);
+	return ob;
 }
 
 
@@ -419,25 +373,6 @@ Window::~Window(){
 	this->_thr.detach();
 	DestroyWindow(this->_hwnd);
 }
-
-
-
-// void Window::fullscreen(bool f){
-// 	WINDOWPLACEMENT g_wpPrev={sizeof(WINDOWPLACEMENT)};
-// 	DWORD st=GetWindowLong(this->_hwnd,GWL_STYLE);
-// 	if ((st&WS_OVERLAPPEDWINDOW)>0){
-// 		MONITORINFO mi={sizeof(mi)};
-// 		if (GetWindowPlacement(this->_hwnd,&(g_wpPrev))&&GetMonitorInfo(MonitorFromWindow(this->_hwnd,MONITOR_DEFAULTTOPRIMARY),&mi)){
-// 			SetWindowLong(this->_hwnd,GWL_STYLE,st&~WS_OVERLAPPEDWINDOW);
-// 			SetWindowPos(this->_hwnd,HWND_TOP,mi.rcMonitor.left,mi.rcMonitor.top,mi.rcMonitor.right-mi.rcMonitor.left,mi.rcMonitor.bottom-mi.rcMonitor.top,SWP_NOOWNERZORDER|SWP_FRAMECHANGED);
-// 		}
-// 	}
-// 	else{
-// 		SetWindowLong(this->_hwnd,GWL_STYLE,st|WS_OVERLAPPEDWINDOW);
-// 		SetWindowPlacement(this->_hwnd,&(g_wpPrev));
-// 		SetWindowPos(this->_hwnd,nullptr,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOOWNERZORDER|SWP_FRAMECHANGED);
-// 	}
-// }
 
 
 
@@ -487,8 +422,8 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 	}
 	ShowWindow(this->_hwnd,1);
 	MSG msg={0};
-	while (WM_QUIT!=msg.message){
-		if (PeekMessage(&msg,this->_hwnd,0,0,PM_REMOVE)){
+	while (msg.message!=WM_QUIT){
+		if (PeekMessage(&msg,this->_hwnd,0,0,PM_REMOVE)==1){
 			TranslateMessage(&msg);
 			switch (msg.message){
 				case WM_CREATE_RENDERER:
@@ -511,10 +446,22 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 					break;
 			}
 		}
-		else if (this->_cr==true){
+		if (this->_cr==true){
+			// static double lt=0;
+			// static ulonglong st=0;
+			// ulonglong ct=GetTickCount64();
+			// if (st==0){
+			// 	st=ct;
+			// }
+			// double t=(ct-st)/1000.0f;
+			// (*u_cb)(this,t-lt);
+			// lt=t;
 			std::chrono::high_resolution_clock::time_point tm=std::chrono::high_resolution_clock::now();
 			(*u_cb)(this,(double)(std::chrono::duration_cast<std::chrono::nanoseconds>(tm-this->_l_tm).count())*1e-9);
 			this->_l_tm=tm;
+			// PAINTSTRUCT ps;
+			// BeginPaint(this->_hwnd,&ps);
+			// EndPaint(this->_hwnd,&ps);
 		}
 	}
 }

@@ -18,6 +18,7 @@
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
+typedef unsigned long long ulonglong;
 #if defined(_WIN64)
 	typedef unsigned long long uint_ptr;
 	typedef long long long_ptr;
@@ -31,30 +32,18 @@ typedef DirectX::XMMATRIX Matrix;
 
 
 
-struct Vertex{
-	Vector3 p;
-	Vector3 n;
-};
-
-
-
-class Renderer;
-
-
-
-class ObjectBuffer{
-	public:
-		std::vector<Vertex> vertexes;
-		std::vector<ushort*> indieces;
-		ObjectBuffer();
-		~ObjectBuffer();
-		void use_renderer(Renderer* r);
-		void update();
-		void render();
-	private:
-		Renderer* r=nullptr;
-		ID3D11Buffer* _vb=nullptr;
-		ID3D11Buffer* _ib=nullptr;
+struct ObjectBuffer{
+	uint sz;
+	uint ln;
+	ID3D11Buffer* vb;
+	ID3D11Buffer* ib;
+	struct ObjectBufferData{
+		std::vector<float> vertexes;
+		std::vector<ushort> indicies;
+		void add_vertexes(std::initializer_list<float> vl);
+		void add_indicies(std::initializer_list<ushort> il);
+	} *data;
+	ObjectBuffer(uint sz);
 };
 
 
@@ -70,23 +59,26 @@ class Renderer{
 		ulong load_vertex_shader(const wchar_t* fp,const char* e,const char* v,D3D11_INPUT_ELEMENT_DESC* il,uint ill);
 		ulong load_pixel_shader(const wchar_t* fp,const char* e,const char* v);
 		ulong create_constant_buffer(uint cbl);
+		ulong create_object_buffer(uint sz);
 		void update_constant_buffer(ulong cb_id,const void* dt);
+		ObjectBuffer::ObjectBufferData* get_object_buffer(ulong ob_id);
 		void clear();
 		void use_vertex_shader(ulong vs_id,ulong cb_id);
 		void use_pixel_shader(ulong ps_id,ulong cb_id);
+		void update_object_buffer(ulong ob_id);
+		void render_object_buffer(ulong ob_id);
 		void show();
 		void _i(HWND _hwnd);
-		void _i_ob(ID3D11Buffer** vb,ID3D11Buffer** ib,const Vertex vl[],const ushort il[],int vll,int ill);
-		void _r_ob(ID3D11Buffer** vb,ID3D11Buffer** ib,uint ibl);
 	private:
-		ID3DBlob* _compile_shader(const wchar_t* fp,const char* e,const char* v);
 		HWND _hwnd=nullptr;
 		std::map<ulong,ID3D11VertexShader*> _vsl;
 		std::map<ulong,ID3D11PixelShader*> _psl;
 		std::map<ulong,ID3D11Buffer*> _cbl;
+		std::map<ulong,ObjectBuffer*> _obl;
 		ulong _n_vsl_id=0L;
 		ulong _n_psl_id=0L;
 		ulong _n_cbl_id=0L;
+		ulong _n_obl_id=0L;
 		ID3D11Device* _d3_d=nullptr;
 		ID3D11Device1* _d3_d1=nullptr;
 		ID3D11DeviceContext* _d3_dc=nullptr;
@@ -96,6 +88,14 @@ class Renderer{
 		ID3D11RenderTargetView* _d3_rt=nullptr;
 		ID3D11Texture2D* _d3_ds=nullptr;
 		ID3D11DepthStencilView* _d3_sv=nullptr;
+		ID3DBlob* _compile_shader(const wchar_t* fp,const char* e,const char* v);
+};
+
+
+
+class RendererHelper{
+	public:
+		static ulong create_object_buffer_box(Renderer* r,Vector3 p,float sc);
 };
 
 

@@ -1,21 +1,16 @@
-#ifndef UNICODE
-#define UNICODE
-#endif
+// D:\K\Downloads\directx-sdk-samples\Direct3D11Tutorials\Tutorial06\Tutorial06.cpp
 #include "window.cpp"
 #include <iostream>
-#include <thread>
-#include <chrono>
-#include <cmath>
 
 
 
 struct ConstantBuffer{
-	Matrix mWorld;
-	Matrix mView;
-	Matrix mProjection;
-	Vector4 vLightDir[2];
-	Vector4 vLightColor[2];
-	Vector4 vOutputColor;
+	Matrix wm;
+	Matrix vm;
+	Matrix pm;
+	Vector4 l_d[2];
+	Vector4 l_c[2];
+	Vector4 o_c;
 };
 
 
@@ -23,7 +18,7 @@ struct ConstantBuffer{
 ulong vs;
 ulong ps;
 ulong pss;
-ObjectBuffer ob;
+ulong ob;
 ulong cb;
 
 
@@ -49,12 +44,11 @@ void i_cb(Window* w){
 			0
 		},
 	};
-	ulong vs=w->renderer.load_vertex_shader(L"rsrc/shader.fx","VS","vs_4_0",vs_inp,2);
-	ulong ps=w->renderer.load_pixel_shader(L"rsrc/shader.fx","PS","ps_4_0");
-	ulong pss=w->renderer.load_pixel_shader(L"rsrc/shader.fx","PSSolid","ps_4_0");
-	ob.use_renderer(&w->renderer);
+	ulong vs=w->renderer.load_vertex_shader(L"rsrc/shader.fx","vertex_shader","vs_4_0",vs_inp,2);
+	ulong ps=w->renderer.load_pixel_shader(L"rsrc/shader.fx","pixel_shader","ps_4_0");
+	ulong pss=w->renderer.load_pixel_shader(L"rsrc/shader.fx","pixel_shader_solid","ps_4_0");
 	cb=w->renderer.create_constant_buffer(sizeof(ConstantBuffer));
-	ob.update();
+	ob=RendererHelper::create_object_buffer_box(&w->renderer,Vector3(0,0,0),2);
 }
 
 
@@ -82,18 +76,18 @@ void u_cb(Window* w,double dt){
 	w->renderer.clear();
 	w->renderer.clear_color[2]=0.8f;
 	ConstantBuffer cb1={};
-	cb1.mWorld = DirectX::XMMatrixTranspose( g_World );
-	cb1.mView = DirectX::XMMatrixTranspose( w->renderer.view_matrix );
-	cb1.mProjection = DirectX::XMMatrixTranspose( w->renderer.projection_matrix);
-	cb1.vLightDir[0] = vLightDirs[0];
-	cb1.vLightDir[1] = vLightDirs[1];
-	cb1.vLightColor[0] = vLightColors[0];
-	cb1.vLightColor[1] = vLightColors[1];
-	cb1.vOutputColor = Vector4(0, 0, 0, 0);
+	cb1.wm = DirectX::XMMatrixTranspose( g_World );
+	cb1.vm = DirectX::XMMatrixTranspose( w->renderer.view_matrix );
+	cb1.pm = DirectX::XMMatrixTranspose( w->renderer.projection_matrix);
+	cb1.l_d[0] = vLightDirs[0];
+	cb1.l_d[1] = vLightDirs[1];
+	cb1.l_c[0] = vLightColors[0];
+	cb1.l_c[1] = vLightColors[1];
+	cb1.o_c = Vector4(0, 0, 0, 0);
 	w->renderer.update_constant_buffer(cb,&cb1);
 	w->renderer.use_vertex_shader(vs,cb);
 	w->renderer.use_pixel_shader(ps,cb);
-	ob.render();
+	w->renderer.render_object_buffer(ob);
 	using namespace DirectX;
 	for( int m = 0; m < 2; m++ )
 	{
@@ -102,12 +96,12 @@ void u_cb(Window* w,double dt){
 		mLight = mLightScale * mLight;
 
 		// Update the world variable to reflect the current light
-		cb1.mWorld = DirectX::XMMatrixTranspose( mLight );
-		cb1.vOutputColor = vLightColors[m];
+		cb1.wm = DirectX::XMMatrixTranspose( mLight );
+		cb1.o_c = vLightColors[m];
 		w->renderer.update_constant_buffer(cb,&cb1);
 		w->renderer.use_pixel_shader(ps,cb);
 
-		ob.render();
+		w->renderer.render_object_buffer(ob);
 	}
 	w->renderer.show();
 }
@@ -117,6 +111,8 @@ void u_cb(Window* w,double dt){
 int main(int argc,char** argv){
 	Window w(600,600,800,600,L"Window Name",&i_cb,&u_cb);
 	std::cout<<"Window Created!"<<std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+	while (!w.pressed(27)){
+		continue;
+	}
 	return 0;
 }
