@@ -26,6 +26,7 @@ typedef unsigned long long ulonglong;
 	typedef unsigned int uint_ptr;
 	typedef long long_ptr;
 #endif
+typedef DirectX::XMVECTOR Vector;
 typedef DirectX::XMFLOAT3 Vector3;
 typedef DirectX::XMFLOAT4 Vector4;
 typedef DirectX::XMMATRIX Matrix;
@@ -96,6 +97,13 @@ class Renderer{
 class RendererHelper{
 	public:
 		static ulong create_object_buffer_box(Renderer* r,Vector3 p,float sc);
+		static Vector create_vector(const Vector4* v);
+		static Matrix create_x_rotation_matrix(double a);
+		static Matrix create_y_rotation_matrix(double a);
+		static Matrix create_z_rotation_matrix(double a);
+		static Matrix create_scaling_matrix(double a,double b,double c);
+		static Matrix create_translation_matrix(Vector v);
+		static Matrix transpose_matrix(Matrix m);
 };
 
 

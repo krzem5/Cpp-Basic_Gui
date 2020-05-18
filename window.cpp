@@ -362,6 +362,48 @@ ulong RendererHelper::create_object_buffer_box(Renderer* r,Vector3 p,float sc){
 
 
 
+Vector RendererHelper::create_vector(const Vector4* v){
+	return DirectX::XMLoadFloat4(v);
+}
+
+
+
+Matrix RendererHelper::create_x_rotation_matrix(double a){
+	return DirectX::XMMatrixRotationX(a);
+}
+
+
+
+Matrix RendererHelper::create_y_rotation_matrix(double a){
+	return DirectX::XMMatrixRotationY(a);
+}
+
+
+
+Matrix RendererHelper::create_z_rotation_matrix(double a){
+	return DirectX::XMMatrixRotationZ(a);
+}
+
+
+
+Matrix RendererHelper::create_scaling_matrix(double a,double b,double c){
+	return DirectX::XMMatrixScaling(a,b,c);
+}
+
+
+
+Matrix RendererHelper::create_translation_matrix(Vector v){
+	return DirectX::XMMatrixTranslationFromVector(v);
+}
+
+
+
+Matrix RendererHelper::transpose_matrix(Matrix m){
+	return DirectX::XMMatrixTranspose(m);
+}
+
+
+
 Window::Window(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*),void (*u_cb)(Window*,double)){
 	this->_create_wr(x,y,w,h,nm,i_cb,u_cb);
 }
