@@ -12,15 +12,12 @@
 
 
 
-#define WM_CREATE_RENDERER (WM_USER+0x0001)
-#define WM_RESIZE_RENDERER (WM_USER+0x0002)
+#define WM_CREATE_RENDERER (WM_APP+0x0001)
 #if (_WIN32_WINNT>=0x0602)&&!defined(DXGI_1_2_FORMATS)
 	#define DXGI_1_2_FORMATS
 #endif
-#ifndef FIRST
-	#define FIRST
-#else
-	#define NOT_FIRST
+#ifndef UNICODE
+	#define UNICODE
 #endif
 
 
@@ -40,11 +37,15 @@ typedef unsigned long long ulonglong;
 	typedef unsigned int uint_ptr;
 	typedef long long_ptr;
 #endif
-typedef DirectX::XMVECTOR Vector;
-typedef DirectX::XMFLOAT3 Vector3;
-typedef DirectX::XMFLOAT4 Vector4;
+typedef DirectX::XMVECTOR Vector_;
+typedef DirectX::XMFLOAT3 Vector3_;
+typedef DirectX::XMFLOAT4 Vector4_;
+typedef DirectX::XMVECTOR DXVector;
+typedef DirectX::XMFLOAT3 DXVector3;
+typedef DirectX::XMFLOAT4 DXVector4;
 typedef DirectX::XMMATRIX Matrix;
-typedef D3D11_INPUT_ELEMENT_DESC VertexShaderInputLayout;
+typedef D3D11_INPUT_ELEMENT_DESC VS_INPUT_LAYOUT;
+typedef D3D11_SAMPLER_DESC SHADER_SAMPLER_DESCRIPTION;
 
 
 
@@ -56,10 +57,26 @@ enum SHADER_DATA_TYPE{
 
 
 
+enum WINDOW_SIZE_TYPE{
+	WINDOW_SIZE_TYPE_MAXIMISED,
+	WINDOW_SIZE_TYPE_MINIMIZED,
+	WINDOW_SIZE_TYPE_RESTORE
+};
+
+
+
+enum SHADER_DATA_FLAGS:uint{
+	SHADER_DATA_FLAG_VS=1,
+	SHADER_DATA_FLAG_PS=2
+};
+
+
+
 struct SHADER_DATA{
 	SHADER_DATA_TYPE type;
 	ulong id;
 	uint r;
+	uint fl;
 };
 
 
@@ -78,6 +95,23 @@ struct WIC_TO_DXGI{
 
 
 
+struct Vector{
+	double x;
+	double y;
+	double z;
+	double w;
+	Vector();
+	Vector(double x,double y,double z,double w);
+	Vector(Directx::XMVECTOR v);
+	Vector(Directx::XMFLOAT3 v);
+	Vector(Directx::XMFLOAT4 v);
+	Directx::XMVECTOR to_vec();
+	Directx::XMFLOAT3 to_vec3();
+	Directx::XMFLOAT4 to_vec4();
+};
+
+
+
 struct ObjectBuffer{
 	uint sz;
 	uint ln;
@@ -88,7 +122,7 @@ struct ObjectBuffer{
 		std::vector<ushort> indicies;
 		void add_vertexes(std::initializer_list<float> vl);
 		void add_indicies(std::initializer_list<ushort> il);
-} *data;
+	} *data;
 	ObjectBuffer(uint sz);
 };
 
@@ -122,7 +156,7 @@ class Renderer{
 		void _i(HWND _hwnd);
 		void _e(bool e);
 		void _e_wic();
-		void _r();
+		void _r(bool s);
 	private:
 		HWND _hwnd=nullptr;
 		bool _ea=false;
@@ -159,13 +193,17 @@ class Renderer{
 
 class RendererHelper{
 	public:
-		static ulong create_object_buffer_box(Renderer* r,Vector3 p,float sc);
-		static Vector create_vector(const Vector4* v);
+		static ulong create_object_buffer_box(Renderer* r,Vector3_ p,float sc);
+		static Vector_ create_vector(const Vector4_* v);
+		static Matrix create_identity_matrix();
+		static Matrix create_ortographic_matrix(float w,float h,float n,float f);
+		static Matrix create_projection_matrix(float fov,float ar,float n,float f);
+		static Matrix create_lookat_matrix(Vector_ e,Vector_ f,Vector_ u);
 		static Matrix create_x_rotation_matrix(double a);
 		static Matrix create_y_rotation_matrix(double a);
 		static Matrix create_z_rotation_matrix(double a);
 		static Matrix create_scaling_matrix(double a,double b,double c);
-		static Matrix create_translation_matrix(Vector v);
+		static Matrix create_translation_matrix(Vector_ v);
 		static Matrix transpose_matrix(Matrix m);
 };
 
@@ -181,27 +219,33 @@ class Window{
 		void merge_thread();
 		void fullscreen(bool m);
 		bool pressed(int k);
+		void resize(uint w,uint h);
+		void resize(WINDOW_SIZE_TYPE s);
 		int* mouse();
 		void close();
+		void _r();
 	private:
 		HWND _hwnd=nullptr;
+		uint _ss=0;
 		bool _cr=false;
 		bool _end=false;
 		bool _m_r_thr=false;
 		int _m_p[2];
+		uint _rs=0;
+		uint _rs_w=0;
+		uint _rs_h=0;
+		RECT _ss_r;
+		long _ss_s;
+		long _ss_exs;
 		std::chrono::high_resolution_clock::time_point _l_tm;
 		std::thread _w_thr;
 		std::thread _r_thr;
 		void _create_wr(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*),void (*u_cb)(Window*,double));
 		void _create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*));
 		void _render_thr(void (*u_cb)(Window*,double));
+		void _save_state();
+		void _restore();
 };
-
-
-
-#if defined(FIRST)&&!defined(NOT_FIRST)
-	std::map<HWND,Window*> Window::list;
-#endif
 
 
 

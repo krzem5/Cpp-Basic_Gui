@@ -7,8 +7,8 @@ struct VertexShaderInput{
 	Matrix wm;
 	Matrix vm;
 	Matrix pm;
-	Vector4 l_d[2];
-	Vector4 l_c[2];
+	DXVector4 l_d[2];
+	DXVector4 l_c[2];
 };
 
 
@@ -24,7 +24,7 @@ ulong tx;
 
 void i_cb(Window* w){
 	w->renderer.enable_vsync=true;
-	VertexShaderInputLayout vs_inp[]={
+	VS_INPUT_LAYOUT vs_inp[]={
 		{
 			"POSITION",
 			0,
@@ -53,7 +53,7 @@ void i_cb(Window* w){
 			0
 		}
 	};
-	D3D11_SAMPLER_DESC sd={D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+	SHADER_SAMPLER_DESCRIPTION sd={D3D11_FILTER_MIN_MAG_MIP_LINEAR,
 		D3D11_TEXTURE_ADDRESS_CLAMP,
 		D3D11_TEXTURE_ADDRESS_CLAMP,
 		D3D11_TEXTURE_ADDRESS_CLAMP,
@@ -124,7 +124,6 @@ void i_cb(Window* w){
 		23,22,20
 	});
 	w->renderer.update_object_buffer(ob);
-	// ob=RendererHelper::create_object_buffer_box(&w->renderer,Vector3(0,0,0),2);
 	cb=w->renderer.create_constant_buffer(sizeof(VertexShaderInput));
 	ss=w->renderer.create_sampler_state(sd);
 	tx=w->renderer.read_texture_file(L"rsrc/box.png",true);
@@ -137,13 +136,13 @@ void u_cb(Window* w,double dt){
 	t+=dt;
 	w->renderer.clear();
 	Matrix w_m=RendererHelper::create_y_rotation_matrix(t);
-	Vector4 l_d[2]={
-		Vector4(-0.577f,0.577f,-0.577f,1.0f),
-		Vector4(0.0f,0.0f,-1.0f,1.0f),
+	DXVector4 l_d[2]={
+		DXVector4(-0.577f,0.577f,-0.577f,1.0f),
+		DXVector4(0.0f,0.0f,-1.0f,1.0f),
 	};
-	Vector4 l_c[2]={
-		Vector4(0.5f,0.5f,0.5f,1.0f),
-		Vector4(0.5f,0.0f,0.0f,1.0f)
+	DXVector4 l_c[2]={
+		DXVector4(0.5f,0.5f,0.5f,1.0f),
+		DXVector4(0.5f,0.0f,0.0f,1.0f)
 	};
 	Matrix rm=RendererHelper::create_y_rotation_matrix(-2.0f*t);
 	DirectX::XMStoreFloat4(&l_d[1],DirectX::XMVector3Transform(DirectX::XMLoadFloat4(&l_d[1]),rm));
@@ -161,17 +160,20 @@ void u_cb(Window* w,double dt){
 		{
 			SHADER_DATA_TYPE_CONSTANT_BUFFER,
 			cb,
-			0
+			0,
+			SHADER_DATA_FLAG_VS|SHADER_DATA_FLAG_PS
 		},
 		{
 			SHADER_DATA_TYPE_TEXTURE,
 			tx,
-			0
+			0,
+			SHADER_DATA_FLAG_VS
 		},
 		{
 			SHADER_DATA_TYPE_SAMPLER_STATE,
 			ss,
-			0
+			0,
+			SHADER_DATA_FLAG_PS
 		}
 	});
 	w->renderer.use_vertex_shader(vs);
@@ -183,15 +185,24 @@ void u_cb(Window* w,double dt){
 		w->renderer.render_object_buffer(ob);
 	}
 	w->renderer.show();
-	if (w->pressed(27)==true){
+	if (w->pressed(0x1b)==true){
 		w->close();
+	}
+	if (w->pressed(0x45)==true){
+		w->resize(WINDOW_SIZE_TYPE_MAXIMISED);
+	}
+	if (w->pressed(0x57)==true){
+		w->resize(WINDOW_SIZE_TYPE_RESTORE);
+	}
+	if (w->pressed(0x51)==true){
+		w->resize(WINDOW_SIZE_TYPE_MINIMIZED);
 	}
 }
 
 
 
 int main(int argc,char** argv){
-	Window w(600,600,800,800,L"Window Name",&i_cb,&u_cb);
+	Window w(600,600,800,600,L"Window Name",&i_cb,&u_cb);
 	std::cout<<"Window Created!"<<std::endl;
 	w.merge_thread();
 	std::cout<<"End!";

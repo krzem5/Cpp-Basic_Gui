@@ -1,3 +1,4 @@
+// Phong shading => https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-shaders-and-shader-resources#review-the-pixel-shader
 cbuffer ConstantBuffer:register(b0){
 	matrix wm;
 	matrix vm;
