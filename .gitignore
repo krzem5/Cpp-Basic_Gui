@@ -2,3 +2,6 @@
 
 index.exe
 *.obj
+!rsrc/*.obj
+rsrc/tmp
+rsrc/*.py

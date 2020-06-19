@@ -1,4 +1,3 @@
-// Phong shading => https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-shaders-and-shader-resources#review-the-pixel-shader
 cbuffer ConstantBuffer:register(b0){
 	matrix wm;
 	matrix vm;
@@ -35,5 +34,5 @@ float4 pixel_shader(float4 p:SV_POSITION,float3 n:NORMAL,float2 t:TEXCOORD0):SV_
 	for (int j=0;j<2;j++){
 		o+=saturate(dot((float3)l_d[j],n)*l_c[j]);
 	}
-	return tx.Sample(ss,t)+o*0.3;
+	return /*tx.Sample(ss,t)*/float4(0,255,0,255)+o*0.3;
 }

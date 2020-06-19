@@ -12,6 +12,13 @@
 #include <d3dcompiler.h>
 #include <directXMath.h>
 #include <dxgiformat.h>
+#include <math.h>
+#include <wchar.h>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+#include <codecvt>
 #pragma comment(lib,"user32")
 #pragma comment(lib,"d3d11")
 #pragma comment(lib,"d3dcompiler")
@@ -19,16 +26,38 @@
 
 
 
+using namespace krzem;
+
+
+
 Vector::Vector(){
-	this->x=0;
-	this->y=0;
-	this->z=0;
-	this->w=0;
+	//
 }
 
 
 
-Vector::Vector(double x,double y,double z,double w){
+Vector::Vector(float x){
+	this->x=x;
+}
+
+
+
+Vector::Vector(float x,float y){
+	this->x=x;
+	this->y=y;
+}
+
+
+
+Vector::Vector(float x,float y,float z){
+	this->x=x;
+	this->y=y;
+	this->z=z;
+}
+
+
+
+Vector::Vector(float x,float y,float z,float w){
 	this->x=x;
 	this->y=y;
 	this->z=z;
@@ -37,26 +66,148 @@ Vector::Vector(double x,double y,double z,double w){
 
 
 
-Vector::Vector(Directx::XMVECTOR v){
-	this->
+Vector Vector::clone(){
+	return {this->x,this->y,this->z,this->w};
 }
 
 
 
-DirectX::XMVECTOR Vector::to_vec(){
-	return DirectX::XMLoadFloat4(&this->to_vec4());
+Vector Vector::operator=(Vector o){
+	this->x=o.x;
+	this->y=o.y;
+	this->z=o.z;
+	this->w=o.w;
+	return *this;
 }
 
 
 
-DirectX::XMFLOAT3 Vector::to_vec3(){
-	return DirectX::XMFLOAT3(this->x,this->y,this->z);
+float Vector::dot(Vector o){
+	return this->x*o.x+this->y*o.y+this->z*o.z+this->w*w;
 }
 
 
 
-DirectX::XMFLOAT4 Vector::to_vec4(){
-	return DirectX::XMFLOAT4(this->x,this->y,this->z,this->w);
+Vector Vector::cross(Vector o){
+	return {this->y*o.z-this->z*o.y,this->z*o.x-this->x*o.z,this->x*o.y-this->y*o.x};
+}
+
+
+
+Vector Vector::norm(){
+	float m=sqrt(this->x*this->x+this->y*this->y+this->z*this->z+this->w*this->w);
+	return {this->x/m,this->y/m,this->z/m,this->w/m};
+}
+
+
+
+Matrix::Matrix(){
+	this->_00=1;
+	this->_01=0;
+	this->_02=0;
+	this->_03=0;
+	this->_10=0;
+	this->_11=1;
+	this->_12=0;
+	this->_13=0;
+	this->_20=0;
+	this->_21=0;
+	this->_22=1;
+	this->_23=0;
+	this->_30=0;
+	this->_31=0;
+	this->_32=0;
+	this->_33=1;
+}
+
+
+
+Matrix::Matrix(float _00,float _01,float _02,float _03,float _10,float _11,float _12,float _13,float _20,float _21,float _22,float _23,float _30,float _31,float _32,float _33){
+	this->_00=_00;
+	this->_01=_01;
+	this->_02=_02;
+	this->_03=_03;
+	this->_10=_10;
+	this->_11=_11;
+	this->_12=_12;
+	this->_13=_13;
+	this->_20=_20;
+	this->_21=_21;
+	this->_22=_22;
+	this->_23=_23;
+	this->_30=_30;
+	this->_31=_31;
+	this->_32=_32;
+	this->_33=_33;
+}
+
+
+
+Matrix Matrix::operator=(Matrix o){
+	this->_00=o._00;
+	this->_01=o._01;
+	this->_02=o._02;
+	this->_03=o._03;
+	this->_10=o._10;
+	this->_11=o._11;
+	this->_12=o._12;
+	this->_13=o._13;
+	this->_20=o._20;
+	this->_21=o._21;
+	this->_22=o._22;
+	this->_23=o._23;
+	this->_30=o._30;
+	this->_31=o._31;
+	this->_32=o._32;
+	this->_33=o._33;
+	return *this;
+}
+
+
+
+Matrix Matrix::translation_matrix(float x,float y,float z){
+	return {1,0,0,0,0,1,0,0,0,0,1,0,x,y,z,1};
+}
+
+
+
+Matrix Matrix::x_rotation_matrix(float a){
+	return {1,0,0,0,0,cos(a),-sin(a),0,0,sin(a),cos(a),0,0,0,0,1};
+}
+
+
+
+Matrix Matrix::y_rotation_matrix(float a){
+	return {cos(a),0,-sin(a),0,0,1,0,0,sin(a),0,cos(a),0,0,0,0,1};
+}
+
+
+
+Matrix Matrix::perspective_fov_matrix(float fov,float a,float n,float f){
+	return {cos(fov/2)/sin(fov/2)/a,0,0,0,0,cos(fov/2)/sin(fov/2),0,0,0,0,f/(f-n),1,0,0,-n*f/(f-n),0};
+}
+
+
+
+Matrix Matrix::look_to_matrix(Vector e,Vector d,Vector u){
+	d=d.norm();
+	d.y=-d.y;
+	e.y=-e.y;
+	Vector x=u.cross(d).norm();
+	Vector y=x.cross(d);
+	return {x.x,y.x,d.x,0,-x.y,-y.y,-d.y,0,x.z,y.z,d.z,0,-x.dot(e),-y.dot(e),-d.dot(e),1};
+}
+
+
+
+Vector krzem::operator*(Vector a,Matrix b){
+	return {a.x*b._00+a.y*b._10+a.z*b._20+a.w*b._30,a.x*b._01+a.y*b._11+a.z*b._21+a.w*b._31,a.x*b._02+a.y*b._12+a.z*b._22+a.w*b._32,a.x*b._03+a.y*b._13+a.z*b._23+a.w*b._33};
+}
+
+
+
+Matrix krzem::operator*(Matrix a,Matrix b){
+	return {a._00*b._00+a._01*b._10+a._02*b._20+a._03*b._30,a._00*b._01+a._01*b._11+a._02*b._21+a._03*b._31,a._00*b._02+a._01*b._12+a._02*b._22+a._03*b._32,a._00*b._03+a._01*b._13+a._02*b._23+a._03*b._33,a._10*b._00+a._11*b._10+a._12*b._20+a._13*b._30,a._10*b._01+a._11*b._11+a._12*b._21+a._13*b._31,a._10*b._02+a._11*b._12+a._12*b._22+a._13*b._32,a._10*b._03+a._11*b._13+a._12*b._23+a._13*b._33,a._20*b._00+a._21*b._10+a._22*b._20+a._23*b._30,a._20*b._01+a._21*b._11+a._22*b._21+a._23*b._31,a._20*b._02+a._21*b._12+a._22*b._22+a._23*b._32,a._20*b._03+a._21*b._13+a._22*b._23+a._23*b._33,a._30*b._00+a._31*b._10+a._32*b._20+a._33*b._30,a._30*b._01+a._31*b._11+a._32*b._21+a._33*b._31,a._30*b._02+a._31*b._12+a._32*b._22+a._33*b._32,a._30*b._03+a._31*b._13+a._32*b._23+a._33*b._33};
 }
 
 
@@ -80,6 +231,360 @@ void ObjectBuffer::ObjectBufferData::add_indicies(std::initializer_list<ushort> 
 	for (std::initializer_list<ushort>::iterator i=il.begin();i!=il.end();i++){
 		this->indicies.push_back(*i);
 	}
+}
+
+
+
+OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
+	static std::map<std::wstring,std::map<std::string,std::map<std::string,std::vector<float>>>> _m_cache;
+	if (GetFileAttributesW(fp)==INVALID_FILE_ATTRIBUTES||GetFileAttributesW(fp)&FILE_ATTRIBUTE_DIRECTORY!=0){
+		std::wcout<<L"File Not Found: "<<fp<<"\n";
+		return {0};
+	}
+	struct dt_s_gm{
+		std::vector<std::vector<float>> vxl;
+		std::vector<std::vector<ushort>> fl;
+	};
+	struct dt_s{
+		std::vector<float> vl;
+		std::vector<float> vnl;
+		std::vector<float> vtl;
+		std::vector<std::wstring> ml;
+		std::map<std::string,std::map<std::string,dt_s_gm>> f_m;
+	} data;
+	OBJFile o={fp};
+	data.f_m["__main__"]={};
+	std::string cg="__main__";
+	std::string cm_id="__main_mat__";
+	std::wstring fp_d(fp);
+	fp_d=fp_d.substr(0,fp_d.find_last_of(L"/\\"))+(fp_d.find_last_of(L"/\\")==0?L"":L"\\");
+	bool d_g=false;
+	float* v_o=new float[4];
+	std::ifstream fs(fp);
+	std::string t,tt,l;
+	while (std::getline(fs,l)){
+		if (l.length()==0||l[0]=='#'){
+			continue;
+		}
+		std::stringstream ss(l.substr(l.find_first_of(" ")+1));
+		switch ((OBJ_FILE_TYPE_MAP.count(l.substr(0,l.find_first_of(" ")))==0?0:OBJ_FILE_TYPE_MAP.at(l.substr(0,l.find_first_of(" "))))){
+			case 0:
+				break;
+			case 1:
+				{
+					std::wstring m_fp=fp_d+std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(l.substr(l.find_first_of(" ")+1));
+					data.ml.push_back(m_fp);
+					_m_cache[m_fp]={};
+					std::ifstream m_fs(m_fp);
+					std::string m_l,m_c_mtl,m_t;
+					while (std::getline(m_fs,m_l)){
+						if (m_l.length()==0||m_l[0]=='#'){
+							continue;
+						}
+						std::stringstream m_ss(m_l.substr(m_l.find_first_of(" ")+1));
+						std::string m_st_s="";
+						switch ((OBJ_FILE_TYPE_MAP.count(m_l.substr(0,m_l.find_first_of(" ")))==0?0:OBJ_FILE_TYPE_MAP.at(m_l.substr(0,m_l.find_first_of(" "))))){
+							case 0:
+								break;
+							case 8:
+								m_c_mtl=m_l.substr(m_l.find_first_of(" ")+1);
+								if (_m_cache[m_fp].count(m_c_mtl)>0){
+									std::cout<<"ERROR: Duplicate Material Name: "<<m_c_mtl<<"\n";
+									return {0};
+								}
+								_m_cache[m_fp][m_c_mtl]={};
+								break;
+							case 9:
+								m_st_s="Ka";
+							case 10:
+								if (m_st_s.length()==0){
+									m_st_s="Kd";
+								}
+							case 11:
+								if (m_st_s.length()==0){
+									m_st_s="Ks";
+								}
+								if (_m_cache[m_fp][m_c_mtl].count(m_st_s)>0){
+									std::cout<<"ERROR: Duplicate Key "<<m_st_s<<" in Material "<<m_c_mtl<<"\n";
+									return {0};
+								}
+								_m_cache[m_fp][m_c_mtl][m_st_s]={};
+								for (uint i=0;i<3;i++){
+									std::getline(m_ss,m_t,' ');
+									_m_cache[m_fp][m_c_mtl][m_st_s].push_back(std::stof(m_t));
+								}
+								break;
+							case 12:
+								_m_cache[m_fp][m_c_mtl]["Ns"]={std::stof(m_l.substr(m_l.find_first_of(" ")+1))};
+								break;
+						}
+					}
+					m_fs.close();
+				}
+				break;
+			case 2:
+				cm_id=l.substr(l.find_first_of(" ")+1);
+				break;
+			case 3:
+				for (uint i=0;i<3;i++){
+					std::getline(ss,t,' ');
+					data.vl.push_back((float)std::stod(t));
+					if (data.vl.size()<=3){
+						v_o[i]=data.vl[data.vl.size()-1];
+					}
+					else{
+						v_o[i]=std::min(v_o[i],data.vl[data.vl.size()-1]);
+						v_o[3]=std::max(v_o[6],data.vl[data.vl.size()-1]-v_o[i]);
+					}
+				}
+				break;
+			case 4:
+				for (uint i=0;i<3;i++){
+					std::getline(ss,t,' ');
+					data.vnl.push_back((float)std::stod(t));
+				}
+				break;
+			case 5:
+				for (uint i=0;i<2;i++){
+					std::getline(ss,t,' ');
+					data.vtl.push_back((float)std::stod(t));
+				}
+				break;
+			case 6:
+				{
+					if (cg=="__main__"){
+						d_g=true;
+					}
+					if (data.f_m[cg].count(cm_id)==0){
+						data.f_m[cg][cm_id]={};
+					}
+					std::vector<ushort> id_l;
+					std::string tt;
+					int bf_t=-1;
+					for (uint i=0;i<3;i++){
+						std::getline(ss,t,' ');
+						if (bf_t==-1){
+							bf_t=1;
+							for (uint j=0;j<t.length()-1;j++){
+								if (t[j]=='/'){
+									bf_t++;
+								}
+							}
+						}
+						std::stringstream tss(t);
+						std::vector<float> t_vx_l;
+						for (uint j=0;j<bf_t;j++){
+							std::getline(tss,tt,'/');
+							if (tt.length()==0){
+								continue;
+							}
+							uint v=std::stoi(tt)-1;
+							if (j==0){
+								for (uint k=v*3;k<v*3+3;k++){
+									t_vx_l.push_back(data.vl[k]);
+								}
+							}
+							else if (j==1){
+								for (uint k=v*2;k<v*2+2;k++){
+									t_vx_l.push_back(data.vtl[k]);
+								}
+							}
+							else if (j==2){
+								for (uint k=v*3;k<v*3+3;k++){
+									t_vx_l.push_back(data.vnl[k]);
+								}
+							}
+						}
+						std::vector<std::vector<float>>::iterator vx_i=std::find(data.f_m[cg][cm_id].vxl.begin(),data.f_m[cg][cm_id].vxl.end(),t_vx_l);
+						id_l.push_back((ushort)distance(data.f_m[cg][cm_id].vxl.begin(),vx_i));
+						if (vx_i==data.f_m[cg][cm_id].vxl.end()){
+							data.f_m[cg][cm_id].vxl.push_back(t_vx_l);
+						}
+					}
+					data.f_m[cg][cm_id].fl.push_back(id_l);
+				}
+				break;
+			case 7:
+				cg=l.substr(l.find_first_of(" ")+1);
+				if (data.f_m.count(cg)>0){
+					break;
+				}
+				data.f_m[cg]={};
+				break;
+		}
+	}
+	fs.close();
+	o.t={1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	o.data_sz=data.f_m.size()-(d_g==false?1:0);
+	o.data=new OBJFile::OBJFileGroup[data.f_m.size()-(d_g==false?1:0)];
+	uint j=0;
+	for (std::map<std::string,std::map<std::string,dt_s_gm>>::iterator i=data.f_m.begin();i!=data.f_m.end();i++){
+		if (d_g==false&&i->first=="__main__"){
+			continue;
+		}
+		o.data[j]={};
+		o.data[j].nm=new char[i->first.length()+1];
+		std::strcpy(o.data[j].nm,const_cast<char*>(i->first.c_str()));
+		o.data[j].v=true;
+		o.data[j].t={1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+		o.data[j].dt_sz=i->second.size();
+		o.data[j].dt=new OBJFile::OBJFileGroup::OBJFileGroupData[i->second.size()];
+		uint k=0;
+		for (std::map<std::string,dt_s_gm>::iterator l=i->second.begin();l!=i->second.end();l++){
+			o.data[j].dt[k]={};
+			bool e=false;
+			for (std::vector<std::wstring>::iterator m=data.ml.begin();m!=data.ml.end();m++){
+				for (std::map<std::string,std::map<std::string,std::vector<float>>>::iterator n=_m_cache[*m].begin();n!=_m_cache[*m].end();n++){
+					if (n->first==l->first){
+						e=true;
+						o.data[j].dt[k].mtl.Kd=Vector(n->second["Kd"][0],n->second["Kd"][1],n->second["Kd"][2]);///////////////////////////////////////////////////////////////////////////////////
+					}
+				}
+				if (e==true){
+					break;
+				}
+			}
+			o.data[j].dt[k].ob_id=r->create_object_buffer(l->second.vxl[0].size());
+			ObjectBuffer::ObjectBufferData* ob_b=r->get_object_buffer(o.data[j].dt[k].ob_id);
+			for (std::vector<std::vector<float>>::iterator m=l->second.vxl.begin();m!=l->second.vxl.end();m++){
+				uint ni=0;
+				for (std::vector<float>::iterator n=(*m).begin();n!=(*m).end();n++){
+					ob_b->vertexes.push_back((*n)/v_o[3]-v_o[ni]);
+					ni++;
+				}
+			}
+			for (std::vector<std::vector<ushort>>::iterator m=l->second.fl.begin();m!=l->second.fl.end();m++){
+				for (std::vector<ushort>::iterator n=(*m).begin();n!=(*m).end();n++){
+					ob_b->indicies.push_back(*n);
+				}
+			}
+			r->update_object_buffer(o.data[j].dt[k].ob_id);
+			k++;
+		}
+		j++;
+	}
+	return o;
+}
+
+
+
+void OBJFile::draw(OBJFile o,Renderer* r,uint rs){
+	struct mat_cb{
+		Vector Ka;
+		Vector Kd;
+		Vector Ks;
+		float Ns;
+		float _;
+		float __;
+		float ___;
+		Matrix t;
+		Matrix nt;
+	};
+	static ulong cb_id=r->create_constant_buffer(sizeof(mat_cb));
+	static mat_cb cb={};
+	r->set_shader_data({
+		{
+			SHADER_DATA_TYPE_CONSTANT_BUFFER,
+			cb_id,
+			rs,
+			SHADER_DATA_FLAG_VS|SHADER_DATA_FLAG_PS
+		}
+	});
+	for (uint i=0;i<o.data_sz;i++){
+		if (o.data[i].v==false){
+			continue;
+		}
+		cb.t=o.data[i].t*o.t;
+		cb.nt=o.data[i].nt*o.nt;
+		for (uint j=0;j<o.data[i].dt_sz;j++){
+			cb.Kd=Vector(o.data[i].dt[j].mtl.Kd.x,o.data[i].dt[j].mtl.Kd.y,o.data[i].dt[j].mtl.Kd.z);
+			r->update_constant_buffer(cb_id,&cb);
+			r->render_object_buffer(o.data[i].dt[j].ob_id);
+		}
+	}
+}
+
+
+
+Camera::Camera(){
+	//
+}
+
+
+
+Camera::~Camera(){
+	//
+}
+
+
+
+void Camera::set_window(Window* w){
+	this->_w=w;
+}
+
+
+
+void Camera::update(double dt){
+	POINT mp;
+	GetCursorPos(&mp);
+	if (this->enabled==true){
+		this->_drx+=(this->_w->y+this->_w->h/2.0-mp.y)*this->ROT_SPEED*dt;
+		this->_dry+=(this->_w->x+this->_w->w/2.0-mp.x)*this->ROT_SPEED*dt;
+		if (this->_drx>90){
+			this->_drx=90;
+		}
+		if (this->_drx<-90){
+			this->_drx=-90;
+		}
+		float dx=cos(this->_dry*4*atan(1)/180.0)*this->MOVE_SPEED*dt;
+		float dz=sin(this->_dry*4*atan(1)/180.0)*this->MOVE_SPEED*dt;
+		if (this->_w->pressed(0x57)){
+			this->_dx-=dx;
+			this->_dz-=dz;
+		}
+		if (this->_w->pressed(0x53)){
+			this->_dx+=dx;
+			this->_dz+=dz;
+		}
+		if (this->_w->pressed(0x41)){
+			this->_dx+=dz;
+			this->_dz-=dx;
+		}
+		if (this->_w->pressed(0x44)){
+			this->_dx-=dz;
+			this->_dz+=dx;
+		}
+		if (this->_w->pressed(0x20)){
+			this->_dy+=this->MOVE_SPEED*dt;
+		}
+		if (this->_w->pressed(0x10)){
+			this->_dy-=this->MOVE_SPEED*dt;
+		}
+		this->x=this->_ease(this->x,this->_dx);
+		this->y=this->_ease(this->y,this->_dy);
+		this->z=this->_ease(this->z,this->_dz);
+		this->rx=this->_ease(this->rx,(this->_drx-90)*4*atan(1)/180.0);
+		this->ry=this->_ease(this->ry,this->_dry*4*atan(1)/180.0);
+	}
+	if (this->lock==true){
+		SetCursorPos(this->_w->x+this->_w->w/2,this->_w->y+this->_w->h/2);
+	}
+	this->matrix=Matrix::look_to_matrix(Vector(this->x,this->y,this->z),Vector(sin(this->rx)*cos(this->ry),cos(this->rx),sin(this->rx)*sin(this->ry)),Vector(0,1,0));
+}
+
+
+
+void Camera::reset(){
+	SetCursorPos(this->_w->x+this->_w->w/2,this->_w->y+this->_w->h/2);
+}
+
+
+
+float Camera::_ease(float v,float t){
+	if (abs(v-t)<1e-5){
+		return t;
+	}
+	return v+0.45*(t-v);
 }
 
 
@@ -137,8 +642,9 @@ ulong Renderer::create_constant_buffer(uint cbl){
 		0,
 		0
 	};
-	if (FAILED(this->_d3_d->CreateBuffer(&bd,nullptr,&this->_cbl[this->_n_cbl_id-1]))){
-		std::cout<<"ERR3";
+	HRESULT hr=this->_d3_d->CreateBuffer(&bd,nullptr,&this->_cbl[this->_n_cbl_id-1]);
+	if (FAILED(hr)){
+		this->_err("Error Creating Constant Buffer",hr);
 	}
 	return this->_n_cbl_id-1;
 }
@@ -349,32 +855,6 @@ void Renderer::clear(){
 
 
 
-// void Renderer::set_blending(bool b){
-// 	float bf[4];
-// 	bf[0]=0.0f;
-// 	bf[1]=0.0f;
-// 	bf[2]=0.0f;
-// 	bf[3]=0.0f;
-// 	D3D11_BLEND_DESC bd;
-// 	ZeroMemory(&bd,sizeof(D3D11_BLEND_DESC));
-// 	if (b==true){
-// 		bd.RenderTarget[0].BlendEnable=true;
-// 		bd.RenderTarget[0].SrcBlend=D3D11_BLEND_SRC_ALPHA;
-// 		bd.RenderTarget[0].DestBlend=D3D11_BLEND_INV_SRC_ALPHA;
-// 		bd.RenderTarget[0].BlendOp=D3D11_BLEND_OP_ADD;
-// 		bd.RenderTarget[0].SrcBlendAlpha=D3D11_BLEND_ONE;
-// 		bd.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
-// 		bd.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
-// 		bd.RenderTarget[0].RenderTargetWriteMask=0x0f;
-// 		ID3D11BlendState* bs=nullptr;
-// 		this->_d3_d->CreateBlendState(&bd,&bs);
-// 		this->_d3_dc->OMSetBlendState(bs,bf,0xffffffff);
-// 		bs->Release();
-// 	}
-// }
-
-
-
 void Renderer::set_shader_data(std::initializer_list<SHADER_DATA> dt){
 	for (std::initializer_list<SHADER_DATA>::iterator i=dt.begin();i!=dt.end();i++){
 		if ((*i).type==SHADER_DATA_TYPE_CONSTANT_BUFFER){
@@ -448,7 +928,7 @@ void Renderer::update_object_buffer(ulong ob_id){
 	dt.pSysMem=this->_obl[ob_id]->data->indicies.data();
 	hr=this->_d3_d->CreateBuffer(&bd,&dt,&this->_obl[ob_id]->ib);
 	if (FAILED(hr)){
-		std::cout<<"ERR5"<<std::endl;
+		this->_err("Error Updating the Object Buffer",hr);
 	}
 }
 
@@ -673,9 +1153,9 @@ void Renderer::_r(bool s){
 		1
 	};
 	this->_d3_dc->RSSetViewports(1,&vp);
-	this->world_matrix=DirectX::XMMatrixIdentity();
-	this->view_matrix=DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0.0f,4.0f,-10.0f,0.0f),DirectX::XMVectorSet(0.0f,1.0f,0.0f,0.0f),DirectX::XMVectorSet(0.0f,1.0f,0.0f,0.0f));
-	this->projection_matrix=DirectX::XMMatrixPerspectiveFovLH(XM_PIDIV4,width/(float)height,0.01f,1000.0f);
+	this->world_matrix={};
+	this->view_matrix={};
+	this->projection_matrix={};
 	if (this->_wic_f==nullptr){
 		CoCreateInstance(CLSID_WICImagingFactory,nullptr,CLSCTX_INPROC_SERVER,__uuidof(IWICImagingFactory),(void**)&this->_wic_f);
 	}
@@ -714,80 +1194,14 @@ void Renderer::_err(const char* s,const char* r){
 
 
 
-ulong RendererHelper::create_object_buffer_box(Renderer* r,Vector3_ p,float sc){
-	ulong ob=r->create_object_buffer(6);
-	ObjectBuffer::ObjectBufferData* ob1=r->get_object_buffer(ob);
-	ob1->add_vertexes({-sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,-1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,sc+p.z,-1,0,0,sc+p.x,-sc+p.y,sc+p.z,1,0,0,sc+p.x,-sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,sc+p.z,1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,sc+p.y,sc+p.z,0,0,1,-sc+p.x,sc+p.y,sc+p.z,0,0,1});
-	ob1->add_indicies({3,1,0,2,1,3,6,4,5,7,4,6,11,9,8,10,9,11,14,12,13,15,12,14,19,17,16,18,17,19,22,20,21,23,20,22});
-	r->update_object_buffer(ob);
-	return ob;
-}
-
-
-
-Vector_ RendererHelper::create_vector(const Vector4_* v){
-	return DirectX::XMLoadFloat4(v);
-}
-
-
-
-Matrix RendererHelper::create_identity_matrix(){
-	return DirectX::XMMatrixIdentity();
-}
-
-
-
-Matrix RendererHelper::create_ortographic_matrix(float w,float h,float n,float f){
-	return DirectX::XMMatrixOrthographicLH(w,h,n,f);
-}
-
-
-
-Matrix RendererHelper::create_projection_matrix(float fov,float ar,float n,float f){
-	return DirectX::XMMatrixPerspectiveFovLH(fov,ar,n,f);
-}
-
-
-
-Matrix RendererHelper::create_lookat_matrix(Vector_ e,Vector_ f,Vector_ u){
-	return DirectX::XMMatrixLookAtLH(e,f,u);
-}
-
-
-
-Matrix RendererHelper::create_x_rotation_matrix(double a){
-	return DirectX::XMMatrixRotationX(a);
-}
-
-
-
-Matrix RendererHelper::create_y_rotation_matrix(double a){
-	return DirectX::XMMatrixRotationY(a);
-}
-
-
-
-Matrix RendererHelper::create_z_rotation_matrix(double a){
-	return DirectX::XMMatrixRotationZ(a);
-}
-
-
-
-Matrix RendererHelper::create_scaling_matrix(double a,double b,double c){
-	return DirectX::XMMatrixScaling(a,b,c);
-}
-
-
-
-Matrix RendererHelper::create_translation_matrix(Vector_ v){
-	return DirectX::XMMatrixTranslationFromVector(v);
-}
-
-
-
-Matrix RendererHelper::transpose_matrix(Matrix m){
-	return DirectX::XMMatrixTranspose(m);
-}
+// ulong RendererHelper::create_object_buffer_box(Renderer* r,Vector p,float sc){
+// 	ulong ob=r->create_object_buffer(6);
+// 	ObjectBuffer::ObjectBufferData* ob1=r->get_object_buffer(ob);
+// 	ob1->add_vertexes({-sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,-1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,sc+p.z,-1,0,0,sc+p.x,-sc+p.y,sc+p.z,1,0,0,sc+p.x,-sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,sc+p.z,1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,sc+p.y,sc+p.z,0,0,1,-sc+p.x,sc+p.y,sc+p.z,0,0,1});
+// 	ob1->add_indicies({3,1,0,2,1,3,6,4,5,7,4,6,11,9,8,10,9,11,14,12,13,15,12,14,19,17,16,18,17,19,22,20,21,23,20,22});
+// 	r->update_object_buffer(ob);
+// 	return ob;
+// }
 
 
 
@@ -799,6 +1213,18 @@ Window::Window(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*),v
 
 Window::~Window(){
 	this->close();
+}
+
+
+
+HWND Window::get_handle(){
+	return this->_hwnd;
+}
+
+
+
+void Window::show_cursor(bool st){
+	PostMessage(this->_hwnd,WM_SHOW_CURSOR,st,0);
 }
 
 
@@ -871,12 +1297,6 @@ void Window::resize(WINDOW_SIZE_TYPE s){
 
 
 
-int* Window::mouse(){
-	return this->_m_p;
-}
-
-
-
 void Window::close(){
 	if (this->_end==false){
 		this->_end=true;
@@ -930,6 +1350,11 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 	};
 	RegisterClassExW(&wc);
 	this->_hwnd=CreateWindowExW(wc.style,wc.lpszClassName,nm,WS_OVERLAPPEDWINDOW,x,y,w,h,nullptr,nullptr,GetModuleHandle(0),nullptr);
+	this->x=x;
+	this->y=y;
+	this->w=w;
+	this->h=h;
+	SetWindowPos(this->_hwnd,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
 	if (this->_hwnd==nullptr){
 		std::cout<<"ERR10"<<std::endl;
 		return;
@@ -948,11 +1373,13 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 					this->_cr=true;
 					this->renderer._r(false);
 					break;
+				case WM_SHOW_CURSOR:
+					ShowCursor((msg.wParam==1?true:false));
+					break;
 				case WM_MOUSEMOVE:
 					{
-						MSG p=msg;
-						this->_m_p[0]=GET_X_LPARAM(p.lParam);
-						this->_m_p[1]=GET_Y_LPARAM(p.lParam);
+						this->mx=GET_X_LPARAM(msg.lParam);
+						this->my=GET_Y_LPARAM(msg.lParam);
 					}
 					break;
 				default:
@@ -1006,7 +1433,7 @@ void Window::_save_state(){
 
 void Window::_restore(){
 	ShowWindow(this->_hwnd,SW_RESTORE);
-	SetWindowPos(this->_hwnd,nullptr,this->_ss_r.left,this->_ss_r.top,this->_ss_r.right-this->_ss_r.left,this->_ss_r.bottom-this->_ss_r.top,0);
+	SetWindowPos(this->_hwnd,HWND_NOTOPMOST,this->_ss_r.left,this->_ss_r.top,this->_ss_r.right-this->_ss_r.left,this->_ss_r.bottom-this->_ss_r.top,0);
 	SetWindowLongPtrW(this->_hwnd,GWL_STYLE,this->_ss_s);
 	SetWindowLongPtrW(this->_hwnd,GWL_EXSTYLE,this->_ss_exs);
 	this->renderer._r(true);
@@ -1014,7 +1441,7 @@ void Window::_restore(){
 
 
 
-long_ptr _msg_cb(HWND hwnd,uint msg,uint_ptr wp,long_ptr lp){
+long_ptr krzem::_msg_cb(HWND hwnd,uint msg,uint_ptr wp,long_ptr lp){
 	switch (msg){
 		case WM_CREATE:
 			PostMessage(hwnd,WM_CREATE_RENDERER,0,0);
