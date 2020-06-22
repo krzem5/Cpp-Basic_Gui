@@ -30,26 +30,26 @@ using namespace krzem;
 
 
 
-Vector::Vector(){
+krzem::Vector::Vector(){
 	//
 }
 
 
 
-Vector::Vector(float x){
+krzem::Vector::Vector(float x){
 	this->x=x;
 }
 
 
 
-Vector::Vector(float x,float y){
+krzem::Vector::Vector(float x,float y){
 	this->x=x;
 	this->y=y;
 }
 
 
 
-Vector::Vector(float x,float y,float z){
+krzem::Vector::Vector(float x,float y,float z){
 	this->x=x;
 	this->y=y;
 	this->z=z;
@@ -57,7 +57,7 @@ Vector::Vector(float x,float y,float z){
 
 
 
-Vector::Vector(float x,float y,float z,float w){
+krzem::Vector::Vector(float x,float y,float z,float w){
 	this->x=x;
 	this->y=y;
 	this->z=z;
@@ -66,13 +66,13 @@ Vector::Vector(float x,float y,float z,float w){
 
 
 
-Vector Vector::clone(){
+krzem::Vector krzem::Vector::clone(){
 	return {this->x,this->y,this->z,this->w};
 }
 
 
 
-Vector Vector::operator=(Vector o){
+krzem::Vector krzem::Vector::operator=(krzem::Vector o){
 	this->x=o.x;
 	this->y=o.y;
 	this->z=o.z;
@@ -82,26 +82,38 @@ Vector Vector::operator=(Vector o){
 
 
 
-float Vector::dot(Vector o){
-	return this->x*o.x+this->y*o.y+this->z*o.z+this->w*w;
-}
-
-
-
-Vector Vector::cross(Vector o){
+krzem::Vector krzem::Vector::cross(krzem::Vector o){
 	return {this->y*o.z-this->z*o.y,this->z*o.x-this->x*o.z,this->x*o.y-this->y*o.x};
 }
 
 
 
-Vector Vector::norm(){
+krzem::Vector krzem::Vector::norm(){
 	float m=sqrt(this->x*this->x+this->y*this->y+this->z*this->z+this->w*this->w);
 	return {this->x/m,this->y/m,this->z/m,this->w/m};
 }
 
 
 
-Matrix::Matrix(){
+float krzem::Vector::mag(){
+	return sqrt(this->x*this->x+this->y*this->y+this->z*this->z+this->w*this->w);
+}
+
+
+
+float krzem::Vector::magSq(){
+	return this->x*this->x+this->y*this->y+this->z*this->z+this->w*this->w;
+}
+
+
+
+float krzem::Vector::dot(krzem::Vector o){
+	return this->x*o.x+this->y*o.y+this->z*o.z+this->w*w;
+}
+
+
+
+krzem::Matrix::Matrix(){
 	this->_00=1;
 	this->_01=0;
 	this->_02=0;
@@ -122,7 +134,7 @@ Matrix::Matrix(){
 
 
 
-Matrix::Matrix(float _00,float _01,float _02,float _03,float _10,float _11,float _12,float _13,float _20,float _21,float _22,float _23,float _30,float _31,float _32,float _33){
+krzem::Matrix::Matrix(float _00,float _01,float _02,float _03,float _10,float _11,float _12,float _13,float _20,float _21,float _22,float _23,float _30,float _31,float _32,float _33){
 	this->_00=_00;
 	this->_01=_01;
 	this->_02=_02;
@@ -143,7 +155,7 @@ Matrix::Matrix(float _00,float _01,float _02,float _03,float _10,float _11,float
 
 
 
-Matrix Matrix::operator=(Matrix o){
+krzem::Matrix krzem::Matrix::operator=(krzem::Matrix o){
 	this->_00=o._00;
 	this->_01=o._01;
 	this->_02=o._02;
@@ -165,61 +177,49 @@ Matrix Matrix::operator=(Matrix o){
 
 
 
-Matrix Matrix::translation_matrix(float x,float y,float z){
+krzem::Matrix krzem::Matrix::translation_matrix(float x,float y,float z){
 	return {1,0,0,0,0,1,0,0,0,0,1,0,x,y,z,1};
 }
 
 
 
-Matrix Matrix::x_rotation_matrix(float a){
+krzem::Matrix krzem::Matrix::x_rotation_matrix(float a){
 	return {1,0,0,0,0,cos(a),-sin(a),0,0,sin(a),cos(a),0,0,0,0,1};
 }
 
 
 
-Matrix Matrix::y_rotation_matrix(float a){
+krzem::Matrix krzem::Matrix::y_rotation_matrix(float a){
 	return {cos(a),0,-sin(a),0,0,1,0,0,sin(a),0,cos(a),0,0,0,0,1};
 }
 
 
 
-Matrix Matrix::perspective_fov_matrix(float fov,float a,float n,float f){
+krzem::Matrix krzem::Matrix::perspective_fov_matrix(float fov,float a,float n,float f){
 	return {cos(fov/2)/sin(fov/2)/a,0,0,0,0,cos(fov/2)/sin(fov/2),0,0,0,0,f/(f-n),1,0,0,-n*f/(f-n),0};
 }
 
 
 
-Matrix Matrix::look_to_matrix(Vector e,Vector d,Vector u){
+krzem::Matrix krzem::Matrix::look_to_matrix(krzem::Vector e,krzem::Vector d,krzem::Vector u){
 	d=d.norm();
 	d.y=-d.y;
 	e.y=-e.y;
-	Vector x=u.cross(d).norm();
-	Vector y=x.cross(d);
+	krzem::Vector x=u.cross(d).norm();
+	krzem::Vector y=x.cross(d);
 	return {x.x,y.x,d.x,0,-x.y,-y.y,-d.y,0,x.z,y.z,d.z,0,-x.dot(e),-y.dot(e),-d.dot(e),1};
 }
 
 
 
-Vector krzem::operator*(Vector a,Matrix b){
-	return {a.x*b._00+a.y*b._10+a.z*b._20+a.w*b._30,a.x*b._01+a.y*b._11+a.z*b._21+a.w*b._31,a.x*b._02+a.y*b._12+a.z*b._22+a.w*b._32,a.x*b._03+a.y*b._13+a.z*b._23+a.w*b._33};
-}
-
-
-
-Matrix krzem::operator*(Matrix a,Matrix b){
-	return {a._00*b._00+a._01*b._10+a._02*b._20+a._03*b._30,a._00*b._01+a._01*b._11+a._02*b._21+a._03*b._31,a._00*b._02+a._01*b._12+a._02*b._22+a._03*b._32,a._00*b._03+a._01*b._13+a._02*b._23+a._03*b._33,a._10*b._00+a._11*b._10+a._12*b._20+a._13*b._30,a._10*b._01+a._11*b._11+a._12*b._21+a._13*b._31,a._10*b._02+a._11*b._12+a._12*b._22+a._13*b._32,a._10*b._03+a._11*b._13+a._12*b._23+a._13*b._33,a._20*b._00+a._21*b._10+a._22*b._20+a._23*b._30,a._20*b._01+a._21*b._11+a._22*b._21+a._23*b._31,a._20*b._02+a._21*b._12+a._22*b._22+a._23*b._32,a._20*b._03+a._21*b._13+a._22*b._23+a._23*b._33,a._30*b._00+a._31*b._10+a._32*b._20+a._33*b._30,a._30*b._01+a._31*b._11+a._32*b._21+a._33*b._31,a._30*b._02+a._31*b._12+a._32*b._22+a._33*b._32,a._30*b._03+a._31*b._13+a._32*b._23+a._33*b._33};
-}
-
-
-
-ObjectBuffer::ObjectBuffer(uint sz){
+krzem::ObjectBuffer::ObjectBuffer(uint sz){
 	this->sz=sz;
-	this->data=new ObjectBufferData();
+	this->data=new ObjectBuffer::ObjectBufferData();
 }
 
 
 
-void ObjectBuffer::ObjectBufferData::add_vertexes(std::initializer_list<float> vl){
+void krzem::ObjectBuffer::ObjectBufferData::add_vertexes(std::initializer_list<float> vl){
 	for (std::initializer_list<float>::iterator i=vl.begin();i!=vl.end();i++){
 		this->vertexes.push_back(*i);
 	}
@@ -227,7 +227,7 @@ void ObjectBuffer::ObjectBufferData::add_vertexes(std::initializer_list<float> v
 
 
 
-void ObjectBuffer::ObjectBufferData::add_indicies(std::initializer_list<ushort> il){
+void krzem::ObjectBuffer::ObjectBufferData::add_indicies(std::initializer_list<ushort> il){
 	for (std::initializer_list<ushort>::iterator i=il.begin();i!=il.end();i++){
 		this->indicies.push_back(*i);
 	}
@@ -235,7 +235,7 @@ void ObjectBuffer::ObjectBufferData::add_indicies(std::initializer_list<ushort> 
 
 
 
-OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
+krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 	static std::map<std::wstring,std::map<std::string,std::map<std::string,std::vector<float>>>> _m_cache;
 	if (GetFileAttributesW(fp)==INVALID_FILE_ATTRIBUTES||GetFileAttributesW(fp)&FILE_ATTRIBUTE_DIRECTORY!=0){
 		std::wcout<<L"File Not Found: "<<fp<<"\n";
@@ -252,7 +252,7 @@ OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
 		std::vector<std::wstring> ml;
 		std::map<std::string,std::map<std::string,dt_s_gm>> f_m;
 	} data;
-	OBJFile o={fp};
+	krzem::OBJFile o={fp};
 	data.f_m["__main__"]={};
 	std::string cg="__main__";
 	std::string cm_id="__main_mat__";
@@ -416,7 +416,7 @@ OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
 	fs.close();
 	o.t={1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	o.data_sz=data.f_m.size()-(d_g==false?1:0);
-	o.data=new OBJFile::OBJFileGroup[data.f_m.size()-(d_g==false?1:0)];
+	o.data=new krzem::OBJFile::OBJFileGroup[data.f_m.size()-(d_g==false?1:0)];
 	uint j=0;
 	for (std::map<std::string,std::map<std::string,dt_s_gm>>::iterator i=data.f_m.begin();i!=data.f_m.end();i++){
 		if (d_g==false&&i->first=="__main__"){
@@ -428,7 +428,7 @@ OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
 		o.data[j].v=true;
 		o.data[j].t={1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 		o.data[j].dt_sz=i->second.size();
-		o.data[j].dt=new OBJFile::OBJFileGroup::OBJFileGroupData[i->second.size()];
+		o.data[j].dt=new krzem::OBJFile::OBJFileGroup::OBJFileGroupData[i->second.size()];
 		uint k=0;
 		for (std::map<std::string,dt_s_gm>::iterator l=i->second.begin();l!=i->second.end();l++){
 			o.data[j].dt[k]={};
@@ -437,7 +437,7 @@ OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
 				for (std::map<std::string,std::map<std::string,std::vector<float>>>::iterator n=_m_cache[*m].begin();n!=_m_cache[*m].end();n++){
 					if (n->first==l->first){
 						e=true;
-						o.data[j].dt[k].mtl.Kd=Vector(n->second["Kd"][0],n->second["Kd"][1],n->second["Kd"][2]);///////////////////////////////////////////////////////////////////////////////////
+						o.data[j].dt[k].mtl.Kd=krzem::Vector(n->second["Kd"][0],n->second["Kd"][1],n->second["Kd"][2]);///////////////////////////////////////////////////////////////////////////////////
 					}
 				}
 				if (e==true){
@@ -445,7 +445,7 @@ OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
 				}
 			}
 			o.data[j].dt[k].ob_id=r->create_object_buffer(l->second.vxl[0].size());
-			ObjectBuffer::ObjectBufferData* ob_b=r->get_object_buffer(o.data[j].dt[k].ob_id);
+			krzem::ObjectBuffer::ObjectBufferData* ob_b=r->get_object_buffer(o.data[j].dt[k].ob_id);
 			for (std::vector<std::vector<float>>::iterator m=l->second.vxl.begin();m!=l->second.vxl.end();m++){
 				uint ni=0;
 				for (std::vector<float>::iterator n=(*m).begin();n!=(*m).end();n++){
@@ -468,17 +468,17 @@ OBJFile OBJFile::load(wchar_t* fp,Renderer* r){
 
 
 
-void OBJFile::draw(OBJFile o,Renderer* r,uint rs){
+void krzem::OBJFile::draw(krzem::OBJFile o,krzem::Renderer* r,uint rs){
 	struct mat_cb{
-		Vector Ka;
-		Vector Kd;
-		Vector Ks;
+		krzem::Vector Ka;
+		krzem::Vector Kd;
+		krzem::Vector Ks;
 		float Ns;
 		float _;
 		float __;
 		float ___;
-		Matrix t;
-		Matrix nt;
+		krzem::Matrix t;
+		krzem::Matrix nt;
 	};
 	static ulong cb_id=r->create_constant_buffer(sizeof(mat_cb));
 	static mat_cb cb={};
@@ -497,7 +497,7 @@ void OBJFile::draw(OBJFile o,Renderer* r,uint rs){
 		cb.t=o.data[i].t*o.t;
 		cb.nt=o.data[i].nt*o.nt;
 		for (uint j=0;j<o.data[i].dt_sz;j++){
-			cb.Kd=Vector(o.data[i].dt[j].mtl.Kd.x,o.data[i].dt[j].mtl.Kd.y,o.data[i].dt[j].mtl.Kd.z);
+			cb.Kd=krzem::Vector(o.data[i].dt[j].mtl.Kd.x,o.data[i].dt[j].mtl.Kd.y,o.data[i].dt[j].mtl.Kd.z);
 			r->update_constant_buffer(cb_id,&cb);
 			r->render_object_buffer(o.data[i].dt[j].ob_id);
 		}
@@ -506,38 +506,47 @@ void OBJFile::draw(OBJFile o,Renderer* r,uint rs){
 
 
 
-Camera::Camera(){
+krzem::Camera::Camera(){
 	//
 }
 
 
 
-Camera::~Camera(){
+krzem::Camera::~Camera(){
 	//
 }
 
 
 
-void Camera::set_window(Window* w){
+void krzem::Camera::set_window(krzem::Window* w){
 	this->_w=w;
+	this->_fs=false;
 }
 
 
 
-void Camera::update(double dt){
+void krzem::Camera::update(double dt){
+	if (this->_w->focus==false){
+		this->_fs=false;
+		return;
+	}
+	if (this->_fs==false&&this->lock==true){
+		SetCursorPos(this->_w->x+this->_w->w/2,this->_w->y+this->_w->h/2);
+	}
+	this->_fs=true;
 	POINT mp;
 	GetCursorPos(&mp);
 	if (this->enabled==true){
-		this->_drx+=(this->_w->y+this->_w->h/2.0-mp.y)*this->ROT_SPEED*dt;
-		this->_dry+=(this->_w->x+this->_w->w/2.0-mp.x)*this->ROT_SPEED*dt;
-		if (this->_drx>90){
-			this->_drx=90;
+		this->_drx+=(this->_w->y+this->_w->h/2-mp.y)*this->ROT_SPEED*dt;
+		this->_dry+=(this->_w->x+this->_w->w/2-mp.x)*this->ROT_SPEED*dt;
+		if (this->_drx>89.999){
+			this->_drx=89.999;
 		}
-		if (this->_drx<-90){
-			this->_drx=-90;
+		if (this->_drx<-89.999){
+			this->_drx=-89.999;
 		}
-		float dx=cos(this->_dry*4*atan(1)/180.0)*this->MOVE_SPEED*dt;
-		float dz=sin(this->_dry*4*atan(1)/180.0)*this->MOVE_SPEED*dt;
+		float dx=cos(this->_dry*PI/180)*this->MOVE_SPEED*dt;
+		float dz=sin(this->_dry*PI/180)*this->MOVE_SPEED*dt;
 		if (this->_w->pressed(0x57)){
 			this->_dx-=dx;
 			this->_dz-=dz;
@@ -563,24 +572,27 @@ void Camera::update(double dt){
 		this->x=this->_ease(this->x,this->_dx);
 		this->y=this->_ease(this->y,this->_dy);
 		this->z=this->_ease(this->z,this->_dz);
-		this->rx=this->_ease(this->rx,(this->_drx-90)*4*atan(1)/180.0);
-		this->ry=this->_ease(this->ry,this->_dry*4*atan(1)/180.0);
+		this->rx=this->_ease(this->rx,(this->_drx-90)*PI/180);
+		this->ry=this->_ease(this->ry,this->_dry*PI/180);
 	}
 	if (this->lock==true){
 		SetCursorPos(this->_w->x+this->_w->w/2,this->_w->y+this->_w->h/2);
 	}
-	this->matrix=Matrix::look_to_matrix(Vector(this->x,this->y,this->z),Vector(sin(this->rx)*cos(this->ry),cos(this->rx),sin(this->rx)*sin(this->ry)),Vector(0,1,0));
+	this->matrix=krzem::Matrix::look_to_matrix(krzem::Vector(this->x,this->y,this->z),krzem::Vector(sin(this->rx)*cos(this->ry),cos(this->rx),sin(this->rx)*sin(this->ry)),krzem::Vector(0,1,0));
 }
 
 
 
-void Camera::reset(){
+void krzem::Camera::reset(){
+	if (this->_w->focus==false){
+		return;
+	}
 	SetCursorPos(this->_w->x+this->_w->w/2,this->_w->y+this->_w->h/2);
 }
 
 
 
-float Camera::_ease(float v,float t){
+float krzem::Camera::_ease(float v,float t){
 	if (abs(v-t)<1e-5){
 		return t;
 	}
@@ -589,19 +601,19 @@ float Camera::_ease(float v,float t){
 
 
 
-Renderer::Renderer(){
+krzem::Renderer::Renderer(){
 	//
 }
 
 
 
-Renderer::~Renderer(){
+krzem::Renderer::~Renderer(){
 	this->_e(true);
 }
 
 
 
-ulong Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const char* v,D3D11_INPUT_ELEMENT_DESC* il,uint ill){
+ulong krzem::Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const char* v,D3D11_INPUT_ELEMENT_DESC* il,uint ill){
 	this->_vsl[this->_n_vsl_id++]=nullptr;
 	ID3DBlob* b=this->_compile_shader(fp,e,v);
 	HRESULT hr=this->_d3_d->CreateVertexShader(b->GetBufferPointer(),b->GetBufferSize(),nullptr,&this->_vsl[this->_n_vsl_id-1]);
@@ -622,7 +634,7 @@ ulong Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const char* v
 
 
 
-ulong Renderer::load_pixel_shader(const wchar_t* fp,const char* e,const char* v){
+ulong krzem::Renderer::load_pixel_shader(const wchar_t* fp,const char* e,const char* v){
 	this->_psl[this->_n_psl_id++]=nullptr;
 	ID3DBlob* b=this->_compile_shader(fp,e,v);
 	this->_d3_d->CreatePixelShader(b->GetBufferPointer(),b->GetBufferSize(),nullptr,&this->_psl[this->_n_psl_id-1]);
@@ -632,7 +644,7 @@ ulong Renderer::load_pixel_shader(const wchar_t* fp,const char* e,const char* v)
 
 
 
-ulong Renderer::create_constant_buffer(uint cbl){
+ulong krzem::Renderer::create_constant_buffer(uint cbl){
 	this->_cbl[this->_n_cbl_id++]=nullptr;
 	D3D11_BUFFER_DESC bd={
 		cbl,
@@ -651,7 +663,7 @@ ulong Renderer::create_constant_buffer(uint cbl){
 
 
 
-ulong Renderer::create_sampler_state(const D3D11_SAMPLER_DESC sd){
+ulong krzem::Renderer::create_sampler_state(const D3D11_SAMPLER_DESC sd){
 	this->_ssl[this->_n_ssl_id++]=nullptr;
 	HRESULT hr=this->_d3_d->CreateSamplerState(&sd,&this->_ssl[this->_n_ssl_id-1]);
 	if (FAILED(hr)==true){
@@ -663,14 +675,14 @@ ulong Renderer::create_sampler_state(const D3D11_SAMPLER_DESC sd){
 
 
 
-ulong Renderer::create_object_buffer(uint sz){
-	this->_obl[this->_n_obl_id++]=new ObjectBuffer(sz*sizeof(float));
+ulong krzem::Renderer::create_object_buffer(uint sz){
+	this->_obl[this->_n_obl_id++]=new krzem::ObjectBuffer(sz*sizeof(float));
 	return this->_n_obl_id-1;
 }
 
 
 
-ulong Renderer::read_texture_file(const wchar_t* fp,bool sr){
+ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 	this->_txl[this->_n_txl_id++]=nullptr;
 	IWICBitmapDecoder* dec;
 	this->_wic_f->CreateDecoderFromFilename(fp,0,GENERIC_READ,WICDecodeMetadataCacheOnDemand,&dec);
@@ -836,26 +848,26 @@ ulong Renderer::read_texture_file(const wchar_t* fp,bool sr){
 
 
 
-void Renderer::update_constant_buffer(ulong cb_id,const void* dt){
+void krzem::Renderer::update_constant_buffer(ulong cb_id,const void* dt){
 	this->_d3_dc->UpdateSubresource(this->_cbl[cb_id],0,nullptr,dt,0,0);
 }
 
 
 
-ObjectBuffer::ObjectBufferData* Renderer::get_object_buffer(ulong ob_id){
+krzem::ObjectBuffer::ObjectBufferData* krzem::Renderer::get_object_buffer(ulong ob_id){
 	return this->_obl[ob_id]->data;
 }
 
 
 
-void Renderer::clear(){
+void krzem::Renderer::clear(){
 	this->_d3_dc->ClearRenderTargetView(this->_d3_rt,this->clear_color);
 	this->_d3_dc->ClearDepthStencilView(this->_d3_sv,D3D11_CLEAR_DEPTH,1.0f,0);
 }
 
 
 
-void Renderer::set_shader_data(std::initializer_list<SHADER_DATA> dt){
+void krzem::Renderer::set_shader_data(std::initializer_list<SHADER_DATA> dt){
 	for (std::initializer_list<SHADER_DATA>::iterator i=dt.begin();i!=dt.end();i++){
 		if ((*i).type==SHADER_DATA_TYPE_CONSTANT_BUFFER){
 			if ((*i).fl&SHADER_DATA_FLAG_VS!=0){
@@ -890,19 +902,19 @@ void Renderer::set_shader_data(std::initializer_list<SHADER_DATA> dt){
 
 
 
-void Renderer::use_vertex_shader(ulong vs_id){
+void krzem::Renderer::use_vertex_shader(ulong vs_id){
 	this->_d3_dc->VSSetShader(this->_vsl[vs_id],nullptr,0);
 }
 
 
 
-void Renderer::use_pixel_shader(ulong ps_id){
+void krzem::Renderer::use_pixel_shader(ulong ps_id){
 	this->_d3_dc->PSSetShader(this->_psl[ps_id],nullptr,0);
 }
 
 
 
-void Renderer::update_object_buffer(ulong ob_id){
+void krzem::Renderer::update_object_buffer(ulong ob_id){
 	this->_obl[ob_id]->ln=uint(this->_obl[ob_id]->data->vertexes.size());
 	D3D11_BUFFER_DESC bd={
 		uint(this->_obl[ob_id]->data->vertexes.size())*sizeof(float),
@@ -934,7 +946,7 @@ void Renderer::update_object_buffer(ulong ob_id){
 
 
 
-void Renderer::render_object_buffer(ulong ob_id){
+void krzem::Renderer::render_object_buffer(ulong ob_id){
 	uint off=0;
 	this->_d3_dc->IASetVertexBuffers(0,1,&this->_obl[ob_id]->vb,&this->_obl[ob_id]->sz,&off);
 	this->_d3_dc->IASetIndexBuffer(this->_obl[ob_id]->ib,DXGI_FORMAT_R16_UINT,0);
@@ -944,7 +956,7 @@ void Renderer::render_object_buffer(ulong ob_id){
 
 
 
-void Renderer::show(){
+void krzem::Renderer::show(){
 	this->_d3_sc->Present((this->enable_vsync==true?1:0),DXGI_PRESENT_DO_NOT_WAIT);
 	if (this->_p==1){
 		this->_p=2;
@@ -957,7 +969,7 @@ void Renderer::show(){
 
 
 
-void Renderer::_i(HWND _hwnd){
+void krzem::Renderer::_i(HWND _hwnd){
 	this->_hwnd=_hwnd;
 	D3D_FEATURE_LEVEL fl;
 	D3D11CreateDevice(nullptr,D3D_DRIVER_TYPE_HARDWARE,0,D3D11_CREATE_DEVICE_DEBUG,nullptr,0,D3D11_SDK_VERSION,&this->_d3_d,&fl,&this->_d3_dc);
@@ -965,7 +977,7 @@ void Renderer::_i(HWND _hwnd){
 
 
 
-void Renderer::_e(bool e){
+void krzem::Renderer::_e(bool e){
 	if (e==true){
 		this->_vsl.clear();
 		this->_psl.clear();
@@ -1009,13 +1021,13 @@ void Renderer::_e(bool e){
 
 
 
-void Renderer::_e_wic(){
+void krzem::Renderer::_e_wic(){
 	this->_wic_f->Release();
 }
 
 
 
-void Renderer::_r(bool s){
+void krzem::Renderer::_r(bool s){
 	if (this->_p!=0){
 		return;
 	}
@@ -1164,7 +1176,7 @@ void Renderer::_r(bool s){
 
 
 
-ID3DBlob* Renderer::_compile_shader(const wchar_t* fp,const char* e,const char* v){
+ID3DBlob* krzem::Renderer::_compile_shader(const wchar_t* fp,const char* e,const char* v){
 	ID3DBlob* o=nullptr;
 	ID3DBlob* err=nullptr;
 	HRESULT hr=D3DCompileFromFile(fp,nullptr,nullptr,e,v,D3DCOMPILE_ENABLE_STRICTNESS,0,&o,&err);
@@ -1180,7 +1192,7 @@ ID3DBlob* Renderer::_compile_shader(const wchar_t* fp,const char* e,const char* 
 
 
 
-void Renderer::_err(const char* s,HRESULT hr){
+void krzem::Renderer::_err(const char* s,HRESULT hr){
 	_com_error e(hr);
 	std::cout<<s<<": ";
 	std::wcout<<e.ErrorMessage()<<L"\n";
@@ -1188,67 +1200,56 @@ void Renderer::_err(const char* s,HRESULT hr){
 
 
 
-void Renderer::_err(const char* s,const char* r){
+void krzem::Renderer::_err(const char* s,const char* r){
 	std::cout<<s<<": "<<r<<"\n";
 }
 
 
 
-// ulong RendererHelper::create_object_buffer_box(Renderer* r,Vector p,float sc){
-// 	ulong ob=r->create_object_buffer(6);
-// 	ObjectBuffer::ObjectBufferData* ob1=r->get_object_buffer(ob);
-// 	ob1->add_vertexes({-sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,-sc+p.z,0,1,0,sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,sc+p.y,sc+p.z,0,1,0,-sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,-sc+p.z,0,-1,0,sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,0,-1,0,-sc+p.x,-sc+p.y,sc+p.z,-1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,-sc+p.z,-1,0,0,-sc+p.x,sc+p.y,sc+p.z,-1,0,0,sc+p.x,-sc+p.y,sc+p.z,1,0,0,sc+p.x,-sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,-sc+p.z,1,0,0,sc+p.x,sc+p.y,sc+p.z,1,0,0,-sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,-sc+p.y,-sc+p.z,0,0,-1,sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,sc+p.y,-sc+p.z,0,0,-1,-sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,-sc+p.y,sc+p.z,0,0,1,sc+p.x,sc+p.y,sc+p.z,0,0,1,-sc+p.x,sc+p.y,sc+p.z,0,0,1});
-// 	ob1->add_indicies({3,1,0,2,1,3,6,4,5,7,4,6,11,9,8,10,9,11,14,12,13,15,12,14,19,17,16,18,17,19,22,20,21,23,20,22});
-// 	r->update_object_buffer(ob);
-// 	return ob;
-// }
-
-
-
-Window::Window(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*),void (*u_cb)(Window*,double)){
+krzem::Window::Window(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(krzem::Window*),void (*u_cb)(krzem::Window*,double)){
 	this->_create_wr(x,y,w,h,nm,i_cb,u_cb);
 }
 
 
 
-Window::~Window(){
+krzem::Window::~Window(){
 	this->close();
 }
 
 
 
-HWND Window::get_handle(){
+HWND krzem::Window::get_handle(){
 	return this->_hwnd;
 }
 
 
 
-void Window::show_cursor(bool st){
+void krzem::Window::show_cursor(bool st){
 	PostMessage(this->_hwnd,WM_SHOW_CURSOR,st,0);
 }
 
 
 
-void Window::merge_thread(){
+void krzem::Window::merge_thread(){
 	this->_m_r_thr=true;
 	this->_r_thr.join();
 }
 
 
 
-bool Window::pressed(int c){
+bool krzem::Window::pressed(int c){
 	return GetKeyState(c)&0x8000;
 }
 
 
 
-void Window::resize(uint w,uint h){
+void krzem::Window::resize(uint w,uint h){
 
 }
 
 
 
-void Window::resize(WINDOW_SIZE_TYPE s){
+void krzem::Window::resize(WINDOW_SIZE_TYPE s){
 	if (s==WINDOW_SIZE_TYPE_MAXIMISED){
 		if (this->_ss!=1){
 			if (this->_ss==0){
@@ -1297,7 +1298,7 @@ void Window::resize(WINDOW_SIZE_TYPE s){
 
 
 
-void Window::close(){
+void krzem::Window::close(){
 	if (this->_end==false){
 		this->_end=true;
 		ReleaseCapture();
@@ -1312,7 +1313,7 @@ void Window::close(){
 
 
 
-void Window::_r(){
+void krzem::Window::_r(){
 	if (this->_cr==true){
 		this->renderer._r((this->_rs==0?true:false));
 	}
@@ -1320,19 +1321,19 @@ void Window::_r(){
 
 
 
-void Window::_create_wr(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*),void (*u_cb)(Window*,double)){
-	this->_w_thr=std::thread(&Window::_create,this,x,y,w,h,nm,i_cb);
+void krzem::Window::_create_wr(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(krzem::Window*),void (*u_cb)(krzem::Window*,double)){
+	this->_w_thr=std::thread(&krzem::Window::_create,this,x,y,w,h,nm,i_cb);
 	while (this->_cr==false){
 		continue;
 	}
 	(*i_cb)(this);
 	this->_l_tm=std::chrono::high_resolution_clock::now();
-	this->_r_thr=std::thread(&Window::_render_thr,this,u_cb);
+	this->_r_thr=std::thread(&krzem::Window::_render_thr,this,u_cb);
 }
 
 
 
-void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*)){
+void krzem::Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(krzem::Window*)){
 	this->name=const_cast<wchar_t*>(nm);
 	WNDCLASSEXW wc={
 		sizeof(WNDCLASSEX),
@@ -1350,6 +1351,7 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 	};
 	RegisterClassExW(&wc);
 	this->_hwnd=CreateWindowExW(wc.style,wc.lpszClassName,nm,WS_OVERLAPPEDWINDOW,x,y,w,h,nullptr,nullptr,GetModuleHandle(0),nullptr);
+	krzem::Window::list[this->_hwnd]=this;
 	this->x=x;
 	this->y=y;
 	this->w=w;
@@ -1357,9 +1359,9 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 	SetWindowPos(this->_hwnd,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
 	if (this->_hwnd==nullptr){
 		std::cout<<"ERR10"<<std::endl;
+		delete krzem::Window::list[this->_hwnd];
 		return;
 	}
-	Window::list[this->_hwnd]=this;
 	ShowWindow(this->_hwnd,1);
 	this->_save_state();
 	MSG msg={0};
@@ -1394,7 +1396,7 @@ void Window::_create(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Wind
 
 
 
-void Window::_render_thr(void (*u_cb)(Window*,double)){
+void krzem::Window::_render_thr(void (*u_cb)(krzem::Window*,double)){
 	while (this->_end==false){
 		if (this->_rs!=0){
 			switch (this->_rs){
@@ -1423,7 +1425,7 @@ void Window::_render_thr(void (*u_cb)(Window*,double)){
 
 
 
-void Window::_save_state(){
+void krzem::Window::_save_state(){
 	GetWindowRect(this->_hwnd,&this->_ss_r);
 	this->_ss_s=GetWindowLongPtrW(this->_hwnd,GWL_STYLE);
 	this->_ss_exs=GetWindowLongPtrW(this->_hwnd,GWL_EXSTYLE);
@@ -1431,7 +1433,7 @@ void Window::_save_state(){
 
 
 
-void Window::_restore(){
+void krzem::Window::_restore(){
 	ShowWindow(this->_hwnd,SW_RESTORE);
 	SetWindowPos(this->_hwnd,HWND_NOTOPMOST,this->_ss_r.left,this->_ss_r.top,this->_ss_r.right-this->_ss_r.left,this->_ss_r.bottom-this->_ss_r.top,0);
 	SetWindowLongPtrW(this->_hwnd,GWL_STYLE,this->_ss_s);
@@ -1441,13 +1443,80 @@ void Window::_restore(){
 
 
 
+krzem::Vector krzem::operator*(krzem::Vector a,krzem::Matrix b){
+	return {a.x*b._00+a.y*b._10+a.z*b._20+a.w*b._30,a.x*b._01+a.y*b._11+a.z*b._21+a.w*b._31,a.x*b._02+a.y*b._12+a.z*b._22+a.w*b._32,a.x*b._03+a.y*b._13+a.z*b._23+a.w*b._33};
+}
+
+
+
+std::ostream& krzem::operator<<(std::ostream& o,krzem::Vector v){
+	uint mw=std::max(std::to_string(v.x).size(),std::max(std::to_string(v.y).size(),std::max(std::to_string(v.z).size(),std::to_string(v.w).size())))+9;
+	for (uint i=0;i<(mw-10)/2;i++){
+		o<<"=";
+	}
+	o<<"> krzem::Vector <";
+	for (uint i=0;i<(mw-10)-(mw-10)/2;i++){
+		o<<"=";
+	}
+	o<<"\n  > x => "<<std::to_string(v.x)<<"\n  > y => "<<std::to_string(v.y)<<"\n  > z => "<<std::to_string(v.z)<<"\n  > w => "<<std::to_string(v.w);
+	return o;
+}
+
+
+
+krzem::Matrix krzem::operator*(krzem::Matrix a,krzem::Matrix b){
+	return {a._00*b._00+a._01*b._10+a._02*b._20+a._03*b._30,a._00*b._01+a._01*b._11+a._02*b._21+a._03*b._31,a._00*b._02+a._01*b._12+a._02*b._22+a._03*b._32,a._00*b._03+a._01*b._13+a._02*b._23+a._03*b._33,a._10*b._00+a._11*b._10+a._12*b._20+a._13*b._30,a._10*b._01+a._11*b._11+a._12*b._21+a._13*b._31,a._10*b._02+a._11*b._12+a._12*b._22+a._13*b._32,a._10*b._03+a._11*b._13+a._12*b._23+a._13*b._33,a._20*b._00+a._21*b._10+a._22*b._20+a._23*b._30,a._20*b._01+a._21*b._11+a._22*b._21+a._23*b._31,a._20*b._02+a._21*b._12+a._22*b._22+a._23*b._32,a._20*b._03+a._21*b._13+a._22*b._23+a._23*b._33,a._30*b._00+a._31*b._10+a._32*b._20+a._33*b._30,a._30*b._01+a._31*b._11+a._32*b._21+a._33*b._31,a._30*b._02+a._31*b._12+a._32*b._22+a._33*b._32,a._30*b._03+a._31*b._13+a._32*b._23+a._33*b._33};
+}
+
+
+
+std::ostream& krzem::operator<<(std::ostream& o,krzem::Matrix m){
+	auto _fs=[](float f)->std::string{
+		std::string o=std::to_string(f);
+		while (o[o.size()-1]=='0'){
+			o=o.substr(0,o.size()-1);
+		}
+		if (o[o.size()-1]=='.'){
+			o=o.substr(0,o.size()-1);
+		}
+		return o;
+	};
+	auto _n=[_fs](float f,ulonglong l,bool m)->std::string{
+		std::string o(_fs(f));
+		while (o.size()<l+(f<0?1:0)){
+			o+=" ";
+		}
+		return (m==true&&f>=0?" ":"")+o;
+	};
+	bool* mn=new bool[4]{(m._00<0||m._10<0||m._20<0||m._30<0?true:false),(m._01<0||m._11<0||m._21<0||m._31<0?true:false),(m._02<0||m._12<0||m._22<0||m._32<0?true:false),(m._03<0||m._13<0||m._23<0||m._33<0?true:false)};
+	ulonglong* w=new ulonglong[4]{std::max(_fs(fabs(m._00)).size(),std::max(_fs(fabs(m._10)).size(),std::max(_fs(fabs(m._20)).size(),_fs(fabs(m._30)).size()))),std::max(_fs(fabs(m._01)).size(),std::max(_fs(fabs(m._11)).size(),std::max(_fs(fabs(m._21)).size(),_fs(fabs(m._31)).size()))),std::max(_fs(fabs(m._02)).size(),std::max(_fs(fabs(m._12)).size(),std::max(_fs(fabs(m._22)).size(),_fs(fabs(m._32)).size()))),std::max(_fs(fabs(m._03)).size(),std::max(_fs(fabs(m._13)).size(),std::max(_fs(fabs(m._23)).size(),_fs(fabs(m._33)).size())))};
+	ulonglong mw=std::max((ulonglong)10,w[0]+w[1]+w[2]+w[3]+(mn[0]==true?1:0)+(mn[1]==true?1:0)+(mn[2]==true?1:0)+(mn[3]==true?1:0)+3);
+	for (uint i=0;i<(mw-10)/2;i++){
+		o<<"=";
+	}
+	o<<"> krzem::Matrix <";
+	for (uint i=0;i<(mw-10)-(mw-10)/2;i++){
+		o<<"=";
+	}
+	o<<"\n"<<_n(m._00,w[0],mn[0])<<" "<<_n(m._01,w[1],mn[1])<<" "<<_n(m._02,w[2],mn[2])<<" "<<_n(m._03,w[3],mn[3])<<"\n"<<_n(m._10,w[0],mn[0])<<" "<<_n(m._11,w[1],mn[1])<<" "<<_n(m._12,w[2],mn[2])<<" "<<_n(m._13,w[3],mn[3])<<"\n"<<_n(m._20,w[0],mn[0])<<" "<<_n(m._21,w[1],mn[1])<<" "<<_n(m._22,w[2],mn[2])<<" "<<_n(m._23,w[3],mn[3])<<"\n"<<_n(m._30,w[0],mn[0])<<" "<<_n(m._31,w[1],mn[1])<<" "<<_n(m._32,w[2],mn[2])<<" "<<_n(m._33,w[3],mn[3]);
+	return o;
+}
+
+
+
 long_ptr krzem::_msg_cb(HWND hwnd,uint msg,uint_ptr wp,long_ptr lp){
 	switch (msg){
 		case WM_CREATE:
 			PostMessage(hwnd,WM_CREATE_RENDERER,0,0);
 			return 0;
+		case WM_KILLFOCUS:
+			krzem::Window::list[hwnd]->focus=false;
+			return 0;
+		case WM_SETFOCUS:
+			krzem::Window::list[hwnd]->focus=true;
+			return 0;
 		case WM_SIZE:
-			Window::list[hwnd]->_r();
+			krzem::Window::list[hwnd]->_r();
 			return 0;
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -1458,4 +1527,4 @@ long_ptr krzem::_msg_cb(HWND hwnd,uint msg,uint_ptr wp,long_ptr lp){
 
 
 
-std::map<HWND,Window*> Window::list;
+std::map<HWND,krzem::Window*> krzem::Window::list;

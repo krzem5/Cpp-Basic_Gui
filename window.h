@@ -113,9 +113,11 @@ namespace krzem{
 		Vector operator*=(Vector o);
 		Vector operator*=(Matrix o);
 		Vector operator/=(Vector o);
-		float dot(Vector o);
 		Vector cross(Vector o);
 		Vector norm();
+		float mag();
+		float magSq();
+		float dot(Vector o);
 	};
 
 
@@ -151,22 +153,11 @@ namespace krzem{
 		static Matrix x_rotation_matrix(float a);
 		static Matrix y_rotation_matrix(float a);
 		static Matrix z_rotation_matrix(float a);
+		static Matrix xyz_rotation_matrix(float a,float b,float c);
+		static Matrix axis_rotation_matrix(Vector ax,float a);
 		static Matrix perspective_fov_matrix(float fov,float a,float n,float f);
 		static Matrix look_to_matrix(Vector e,Vector d,Vector u);
 	};
-
-
-
-	Vector operator+(Vector a,Vector b);
-	Vector operator-(Vector a,Vector b);
-	Vector operator*(Vector a,Vector b);
-	Vector operator*(Vector a,Matrix b);
-	Vector operator/(Vector a,Vector b);
-	Matrix operator+(Matrix a,Matrix b);
-	Matrix operator-(Matrix a,Matrix b);
-	Matrix operator*(Matrix a,Matrix b);
-	Matrix operator*(Matrix a,Vector b);
-	Matrix operator/(Matrix a,Matrix b);
 
 
 
@@ -229,6 +220,7 @@ namespace krzem{
 		private:
 			float _dx,_dy,_dz,_drx,_dry,_drz;
 			Window* _w;
+			bool _fs=false;
 			float _ease(float v,float t);
 	};
 
@@ -301,6 +293,7 @@ namespace krzem{
 			static std::map<HWND,Window*> list;
 			int x,y,w,h;
 			int mx,my;
+			bool focus=true;
 			wchar_t* name=nullptr;
 			Renderer renderer;
 			Window(int x,int y,int w,int h,const wchar_t* nm,void (*i_cb)(Window*),void (*u_cb)(Window*,double));
@@ -338,10 +331,26 @@ namespace krzem{
 
 
 
+	Vector operator+(Vector a,Vector b);
+	Vector operator-(Vector a,Vector b);
+	Vector operator*(Vector a,Vector b);
+	Vector operator*(Vector a,Matrix b);
+	Vector operator/(Vector a,Vector b);
+	std::ostream& operator<<(std::ostream& o,Vector v);
+	Matrix operator+(Matrix a,Matrix b);
+	Matrix operator-(Matrix a,Matrix b);
+	Matrix operator*(Matrix a,Matrix b);
+	Matrix operator*(Matrix a,Vector b);
+	Matrix operator/(Matrix a,Matrix b);
+	std::ostream& operator<<(std::ostream& o,Matrix m);
+
+
+
 	long_ptr _msg_cb(HWND hwnd,uint msg,uint_ptr wp,long_ptr lp);
 
 
 
+	const static float PI=4*atan(1);
 	const static std::unordered_map<std::string,uint> OBJ_FILE_TYPE_MAP{
 		{"",0},
 		{"mtllib",1},
@@ -357,9 +366,6 @@ namespace krzem{
 		{"Ks",11},
 		{"Ns",12}
 	};
-
-
-
 	const static WIC_CONVERT WIC_CONVERT_D[]={
 		{GUID_WICPixelFormatBlackWhite,GUID_WICPixelFormat8bppGray},
 		{GUID_WICPixelFormat1bppIndexed,GUID_WICPixelFormat32bppRGBA},
@@ -409,9 +415,6 @@ namespace krzem{
 		{GUID_WICPixelFormat64bppPRGBAHalf,GUID_WICPixelFormat64bppRGBAHalf},
 	#endif
 	};
-
-
-
 	const static WIC_TO_DXGI WIC_TO_DXGI_D[]={
 		{GUID_WICPixelFormat128bppRGBAFloat,DXGI_FORMAT_R32G32B32A32_FLOAT},
 		{GUID_WICPixelFormat64bppRGBAHalf,DXGI_FORMAT_R16G16B16A16_FLOAT},

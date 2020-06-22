@@ -105,8 +105,8 @@ void u_cb(Window* w,double dt){
 	w->renderer.use_pixel_shader(ps);
 	obj.t=Matrix::translation_matrix(-0.5,0,-0.5)*Matrix::y_rotation_matrix(t/2);
 	obj.nt=Matrix::y_rotation_matrix(t/2);
-	obj.data[0].t=Matrix::x_rotation_matrix(-1.5*t);
-	obj.data[0].nt=Matrix::x_rotation_matrix(-1.5*t);
+	obj.data[0].t=Matrix::translation_matrix(-0.5,-0.7,-0.5)*Matrix::x_rotation_matrix(-0.85*t)*Matrix::translation_matrix(0.5,0.7,0.5);
+	obj.data[0].nt=Matrix::x_rotation_matrix(-0.85*t);
 	OBJFile::draw(obj,&w->renderer,1);
 	w->renderer.show();
 	if (w->pressed(0x1b)==true){
@@ -118,7 +118,7 @@ void u_cb(Window* w,double dt){
 
 int main(int argc,char** argv){
 	Window w(600,600,800,600,L"Window Name",&i_cb,&u_cb);
-	std::cout<<"Window Created!"<<std::endl;
+	std::cout<<"Window Created!\n";
 	w.merge_thread();
 	std::cout<<"End!";
 	return 0;
