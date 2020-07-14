@@ -71,6 +71,8 @@ void i_cb(Window* w){
 	c.enabled=true;
 	c.MOVE_SPEED=5;
 	c.ROT_SPEED=5;
+	c.set_pos(0,5,0);
+	c.set_rot(-90,0,0);
 	c.reset();
 	w->show_cursor(false);
 	obj=OBJFile::load(L"rsrc\\model.obj",&w->renderer);
@@ -105,10 +107,22 @@ void u_cb(Window* w,double dt){
 	w->renderer.use_pixel_shader(ps);
 	obj.t=Matrix::translation_matrix(-0.5,0,-0.5)*Matrix::y_rotation_matrix(t/2);
 	obj.nt=Matrix::y_rotation_matrix(t/2);
-	obj.data[0].t=Matrix::translation_matrix(-0.5,-0.7,-0.5)*Matrix::x_rotation_matrix(-0.85*t)*Matrix::translation_matrix(0.5,0.7,0.5);
-	obj.data[0].nt=Matrix::x_rotation_matrix(-0.85*t);
+	static double canon_t=0;
+	static bool d=true;
+	canon_t+=0.85*dt*(d==true?1:-1);
+	if (canon_t>=3.5){
+		d=false;
+		canon_t=3.5;
+	}
+	if (canon_t<=-3.5){
+		d=true;
+		canon_t=-3.5;
+	}
+	obj.data[0].t=Matrix::translation_matrix(0,-0.7,-0.5)*Matrix::x_rotation_matrix(PI/(1+exp(-canon_t)))*Matrix::translation_matrix(0,0.7,0.5);
+	obj.data[0].nt=Matrix::x_rotation_matrix(PI/(1+exp(-canon_t)));
 	OBJFile::draw(obj,&w->renderer,1);
 	w->renderer.show();
+	std::cout<<obj.data_sz<<"\n";
 	if (w->pressed(0x1b)==true){
 		w->close();
 	}
@@ -117,7 +131,7 @@ void u_cb(Window* w,double dt){
 
 
 int main(int argc,char** argv){
-	Window w(600,600,800,600,L"Window Name",&i_cb,&u_cb);
+	Window w(200,200,800,600,L"Window Name",&i_cb,&u_cb);
 	std::cout<<"Window Created!\n";
 	w.merge_thread();
 	std::cout<<"End!";

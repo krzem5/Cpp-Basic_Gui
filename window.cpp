@@ -26,10 +26,6 @@
 
 
 
-using namespace krzem;
-
-
-
 krzem::Vector::Vector(){
 	//
 }
@@ -212,7 +208,7 @@ krzem::Matrix krzem::Matrix::look_to_matrix(krzem::Vector e,krzem::Vector d,krze
 
 
 
-krzem::ObjectBuffer::ObjectBuffer(uint sz){
+krzem::ObjectBuffer::ObjectBuffer(krzem::uint sz){
 	this->sz=sz;
 	this->data=new ObjectBuffer::ObjectBufferData();
 }
@@ -309,7 +305,7 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 									return {0};
 								}
 								_m_cache[m_fp][m_c_mtl][m_st_s]={};
-								for (uint i=0;i<3;i++){
+								for (krzem::uint i=0;i<3;i++){
 									std::getline(m_ss,m_t,' ');
 									_m_cache[m_fp][m_c_mtl][m_st_s].push_back(std::stof(m_t));
 								}
@@ -326,7 +322,7 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 				cm_id=l.substr(l.find_first_of(" ")+1);
 				break;
 			case 3:
-				for (uint i=0;i<3;i++){
+				for (krzem::uint i=0;i<3;i++){
 					std::getline(ss,t,' ');
 					data.vl.push_back((float)std::stod(t));
 					if (data.vl.size()<=3){
@@ -339,13 +335,13 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 				}
 				break;
 			case 4:
-				for (uint i=0;i<3;i++){
+				for (krzem::uint i=0;i<3;i++){
 					std::getline(ss,t,' ');
 					data.vnl.push_back((float)std::stod(t));
 				}
 				break;
 			case 5:
-				for (uint i=0;i<2;i++){
+				for (krzem::uint i=0;i<2;i++){
 					std::getline(ss,t,' ');
 					data.vtl.push_back((float)std::stod(t));
 				}
@@ -361,11 +357,11 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 					std::vector<ushort> id_l;
 					std::string tt;
 					int bf_t=-1;
-					for (uint i=0;i<3;i++){
+					for (krzem::uint i=0;i<3;i++){
 						std::getline(ss,t,' ');
 						if (bf_t==-1){
 							bf_t=1;
-							for (uint j=0;j<t.length()-1;j++){
+							for (krzem::uint j=0;j<t.length()-1;j++){
 								if (t[j]=='/'){
 									bf_t++;
 								}
@@ -373,24 +369,24 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 						}
 						std::stringstream tss(t);
 						std::vector<float> t_vx_l;
-						for (uint j=0;j<bf_t;j++){
+						for (krzem::uint j=0;j<bf_t;j++){
 							std::getline(tss,tt,'/');
 							if (tt.length()==0){
 								continue;
 							}
-							uint v=std::stoi(tt)-1;
+							krzem::uint v=std::stoi(tt)-1;
 							if (j==0){
-								for (uint k=v*3;k<v*3+3;k++){
+								for (krzem::uint k=v*3;k<v*3+3;k++){
 									t_vx_l.push_back(data.vl[k]);
 								}
 							}
 							else if (j==1){
-								for (uint k=v*2;k<v*2+2;k++){
+								for (krzem::uint k=v*2;k<v*2+2;k++){
 									t_vx_l.push_back(data.vtl[k]);
 								}
 							}
 							else if (j==2){
-								for (uint k=v*3;k<v*3+3;k++){
+								for (krzem::uint k=v*3;k<v*3+3;k++){
 									t_vx_l.push_back(data.vnl[k]);
 								}
 							}
@@ -417,7 +413,7 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 	o.t={1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	o.data_sz=data.f_m.size()-(d_g==false?1:0);
 	o.data=new krzem::OBJFile::OBJFileGroup[data.f_m.size()-(d_g==false?1:0)];
-	uint j=0;
+	krzem::uint j=0;
 	for (std::map<std::string,std::map<std::string,dt_s_gm>>::iterator i=data.f_m.begin();i!=data.f_m.end();i++){
 		if (d_g==false&&i->first=="__main__"){
 			continue;
@@ -429,7 +425,7 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 		o.data[j].t={1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 		o.data[j].dt_sz=i->second.size();
 		o.data[j].dt=new krzem::OBJFile::OBJFileGroup::OBJFileGroupData[i->second.size()];
-		uint k=0;
+		krzem::uint k=0;
 		for (std::map<std::string,dt_s_gm>::iterator l=i->second.begin();l!=i->second.end();l++){
 			o.data[j].dt[k]={};
 			bool e=false;
@@ -447,7 +443,7 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 			o.data[j].dt[k].ob_id=r->create_object_buffer(l->second.vxl[0].size());
 			krzem::ObjectBuffer::ObjectBufferData* ob_b=r->get_object_buffer(o.data[j].dt[k].ob_id);
 			for (std::vector<std::vector<float>>::iterator m=l->second.vxl.begin();m!=l->second.vxl.end();m++){
-				uint ni=0;
+				krzem::uint ni=0;
 				for (std::vector<float>::iterator n=(*m).begin();n!=(*m).end();n++){
 					ob_b->vertexes.push_back((*n)/v_o[3]-v_o[ni]);
 					ni++;
@@ -468,19 +464,19 @@ krzem::OBJFile krzem::OBJFile::load(wchar_t* fp,krzem::Renderer* r){
 
 
 
-void krzem::OBJFile::draw(krzem::OBJFile o,krzem::Renderer* r,uint rs){
+void krzem::OBJFile::draw(krzem::OBJFile o,krzem::Renderer* r,krzem::uint rs){
 	struct mat_cb{
 		krzem::Vector Ka;
 		krzem::Vector Kd;
 		krzem::Vector Ks;
 		float Ns;
-		float _;
-		float __;
-		float ___;
+		float _1;
+		float _2;
+		float _3;
 		krzem::Matrix t;
 		krzem::Matrix nt;
 	};
-	static ulong cb_id=r->create_constant_buffer(sizeof(mat_cb));
+	static krzem::ulong cb_id=r->create_constant_buffer(sizeof(mat_cb));
 	static mat_cb cb={};
 	r->set_shader_data({
 		{
@@ -490,14 +486,17 @@ void krzem::OBJFile::draw(krzem::OBJFile o,krzem::Renderer* r,uint rs){
 			SHADER_DATA_FLAG_VS|SHADER_DATA_FLAG_PS
 		}
 	});
-	for (uint i=0;i<o.data_sz;i++){
+	for (krzem::uint i=0;i<o.data_sz;i++){
 		if (o.data[i].v==false){
 			continue;
 		}
 		cb.t=o.data[i].t*o.t;
 		cb.nt=o.data[i].nt*o.nt;
-		for (uint j=0;j<o.data[i].dt_sz;j++){
-			cb.Kd=krzem::Vector(o.data[i].dt[j].mtl.Kd.x,o.data[i].dt[j].mtl.Kd.y,o.data[i].dt[j].mtl.Kd.z);
+		for (krzem::uint j=0;j<o.data[i].dt_sz;j++){
+			cb.Ka=o.data[i].dt[j].mtl.Ka;
+			cb.Kd=o.data[i].dt[j].mtl.Kd;
+			cb.Ks=o.data[i].dt[j].mtl.Ks;
+			cb.Ns=o.data[i].dt[j].mtl.Ns;
 			r->update_constant_buffer(cb_id,&cb);
 			r->render_object_buffer(o.data[i].dt[j].ob_id);
 		}
@@ -521,6 +520,28 @@ krzem::Camera::~Camera(){
 void krzem::Camera::set_window(krzem::Window* w){
 	this->_w=w;
 	this->_fs=false;
+}
+
+
+
+void krzem::Camera::set_pos(float x,float y,float z){
+	this->x=x;
+	this->y=y;
+	this->z=z;
+	this->_dx=x;
+	this->_dy=y;
+	this->_dz=z;
+}
+
+
+
+void krzem::Camera::set_rot(float rx,float ry,float rz){
+	this->rx=(rx-90)*PI/180;
+	this->ry=ry*PI/180;
+	this->rz=rz*PI/180;
+	this->_drx=rx;
+	this->_dry=ry;
+	this->_drz=rz;
 }
 
 
@@ -613,7 +634,7 @@ krzem::Renderer::~Renderer(){
 
 
 
-ulong krzem::Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const char* v,D3D11_INPUT_ELEMENT_DESC* il,uint ill){
+krzem::ulong krzem::Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const char* v,D3D11_INPUT_ELEMENT_DESC* il,krzem::uint ill){
 	this->_vsl[this->_n_vsl_id++]=nullptr;
 	ID3DBlob* b=this->_compile_shader(fp,e,v);
 	HRESULT hr=this->_d3_d->CreateVertexShader(b->GetBufferPointer(),b->GetBufferSize(),nullptr,&this->_vsl[this->_n_vsl_id-1]);
@@ -634,7 +655,7 @@ ulong krzem::Renderer::load_vertex_shader(const wchar_t* fp,const char* e,const 
 
 
 
-ulong krzem::Renderer::load_pixel_shader(const wchar_t* fp,const char* e,const char* v){
+krzem::ulong krzem::Renderer::load_pixel_shader(const wchar_t* fp,const char* e,const char* v){
 	this->_psl[this->_n_psl_id++]=nullptr;
 	ID3DBlob* b=this->_compile_shader(fp,e,v);
 	this->_d3_d->CreatePixelShader(b->GetBufferPointer(),b->GetBufferSize(),nullptr,&this->_psl[this->_n_psl_id-1]);
@@ -644,7 +665,7 @@ ulong krzem::Renderer::load_pixel_shader(const wchar_t* fp,const char* e,const c
 
 
 
-ulong krzem::Renderer::create_constant_buffer(uint cbl){
+krzem::ulong krzem::Renderer::create_constant_buffer(krzem::uint cbl){
 	this->_cbl[this->_n_cbl_id++]=nullptr;
 	D3D11_BUFFER_DESC bd={
 		cbl,
@@ -663,7 +684,7 @@ ulong krzem::Renderer::create_constant_buffer(uint cbl){
 
 
 
-ulong krzem::Renderer::create_sampler_state(const D3D11_SAMPLER_DESC sd){
+krzem::ulong krzem::Renderer::create_sampler_state(const D3D11_SAMPLER_DESC sd){
 	this->_ssl[this->_n_ssl_id++]=nullptr;
 	HRESULT hr=this->_d3_d->CreateSamplerState(&sd,&this->_ssl[this->_n_ssl_id-1]);
 	if (FAILED(hr)==true){
@@ -675,34 +696,34 @@ ulong krzem::Renderer::create_sampler_state(const D3D11_SAMPLER_DESC sd){
 
 
 
-ulong krzem::Renderer::create_object_buffer(uint sz){
+krzem::ulong krzem::Renderer::create_object_buffer(krzem::uint sz){
 	this->_obl[this->_n_obl_id++]=new krzem::ObjectBuffer(sz*sizeof(float));
 	return this->_n_obl_id-1;
 }
 
 
 
-ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
+krzem::ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 	this->_txl[this->_n_txl_id++]=nullptr;
 	IWICBitmapDecoder* dec;
 	this->_wic_f->CreateDecoderFromFilename(fp,0,GENERIC_READ,WICDecodeMetadataCacheOnDemand,&dec);
 	IWICBitmapFrameDecode* f;
 	dec->GetFrame(0,&f);
 	dec->Release();
-	uint i_w;
-	uint i_h;
-	uint t_w;
-	uint t_h;
+	krzem::uint i_w;
+	krzem::uint i_h;
+	krzem::uint t_w;
+	krzem::uint t_h;
 	f->GetSize(&i_w,&i_h);
 	if (i_w>D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION||i_h>D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION){
 		float ar=static_cast<float>(i_h)/static_cast<float>(i_w);
 		if (i_w>i_h){
-			t_w=static_cast<uint>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION);
-			t_h=static_cast<uint>(static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)*ar);
+			t_w=static_cast<krzem::uint>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION);
+			t_h=static_cast<krzem::uint>(static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)*ar);
 		}
 		else{
-			t_w=static_cast<uint>(static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)*ar);
-			t_h=static_cast<uint>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION);
+			t_w=static_cast<krzem::uint>(static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)*ar);
+			t_h=static_cast<krzem::uint>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION);
 		}
 	}
 	else{
@@ -713,9 +734,9 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 	f->GetPixelFormat(&px_f);
 	WICPixelFormatGUID c_guid;
 	memcpy(&c_guid,&px_f,sizeof(WICPixelFormatGUID));
-	uint bpp=0;
+	krzem::uint bpp=0;
 	DXGI_FORMAT tf=DXGI_FORMAT_UNKNOWN;
-	for (uint i=0;i<sizeof(WIC_TO_DXGI_D)/sizeof(WIC_TO_DXGI_D[0]);i++){
+	for (krzem::uint i=0;i<sizeof(WIC_TO_DXGI_D)/sizeof(WIC_TO_DXGI_D[0]);i++){
 		if (memcmp(&WIC_TO_DXGI_D[i].wic_f,&px_f,sizeof(GUID))==0){
 			tf=WIC_TO_DXGI_D[i].dxgi_f;
 			break;
@@ -726,7 +747,7 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 			if (memcmp(&WIC_CONVERT_D[i].s,&px_f,sizeof(WICPixelFormatGUID))==0){
 				memcpy(&c_guid,&WIC_CONVERT_D[i].t,sizeof(WICPixelFormatGUID));
 				tf=DXGI_FORMAT_UNKNOWN;
-				for (uint i=0;i<sizeof(WIC_TO_DXGI_D)/sizeof(WIC_TO_DXGI_D[0]);i++){
+				for (krzem::uint i=0;i<sizeof(WIC_TO_DXGI_D)/sizeof(WIC_TO_DXGI_D[0]);i++){
 					if (memcmp(&WIC_TO_DXGI_D[i].wic_f,&WIC_CONVERT_D[i].t,sizeof(GUID))==0){
 						tf=WIC_TO_DXGI_D[i].dxgi_f;
 						break;
@@ -767,7 +788,7 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 			pfi->Release();
 		}
 	}
-	uint ds=0;
+	krzem::uint ds=0;
 	if (FAILED(this->_d3_d->CheckFormatSupport(tf,&ds))||!(ds&D3D11_FORMAT_SUPPORT_TEXTURE2D)){
 		memcpy(&c_guid,&GUID_WICPixelFormat32bppRGBA,sizeof(WICPixelFormatGUID));
 		tf=DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -777,7 +798,7 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 	size_t i_sz=rp*t_h;
 	std::unique_ptr<uint8_t[]> tmp(new uint8_t[ i_sz]);
 	if (memcmp(&c_guid,&px_f,sizeof(GUID))==0&&t_w==i_w&&t_h==i_h){
-		f->CopyPixels(0,static_cast<uint>(rp),static_cast<uint>(i_sz),tmp.get());
+		f->CopyPixels(0,static_cast<krzem::uint>(rp),static_cast<krzem::uint>(i_sz),tmp.get());
 	}
 	else if (t_w!=i_w||t_h!=i_h){
 		IWICBitmapScaler* sc;
@@ -786,13 +807,13 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 		WICPixelFormatGUID pf_sc;
 		sc->GetPixelFormat(&pf_sc);
 		if (memcmp(&c_guid,&pf_sc,sizeof(GUID))==0){
-			sc->CopyPixels(0,static_cast<uint>(rp),static_cast<uint>(i_sz),tmp.get());
+			sc->CopyPixels(0,static_cast<krzem::uint>(rp),static_cast<krzem::uint>(i_sz),tmp.get());
 		}
 		else{
 			IWICFormatConverter* fc;
 			this->_wic_f->CreateFormatConverter(&fc);
 			fc->Initialize(sc,c_guid,WICBitmapDitherTypeErrorDiffusion,0,0,WICBitmapPaletteTypeCustom);
-			fc->CopyPixels(0,static_cast<uint>(rp),static_cast<uint>(i_sz),tmp.get());
+			fc->CopyPixels(0,static_cast<krzem::uint>(rp),static_cast<krzem::uint>(i_sz),tmp.get());
 			fc->Release();
 		}
 		sc->Release();
@@ -801,12 +822,12 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 		IWICFormatConverter* fc;
 		this->_wic_f->CreateFormatConverter(&fc);
 		fc->Initialize(f,c_guid,WICBitmapDitherTypeErrorDiffusion,0,0,WICBitmapPaletteTypeCustom);
-		fc->CopyPixels(0,static_cast<uint>(rp), static_cast<uint>(i_sz),tmp.get());
+		fc->CopyPixels(0,static_cast<krzem::uint>(rp), static_cast<krzem::uint>(i_sz),tmp.get());
 		fc->Release();
 	}
 	bool sr_ag=false;
 	if (sr==true){
-		uint fmt_s=0;
+		krzem::uint fmt_s=0;
 		if (SUCCEEDED(this->_d3_d->CheckFormatSupport(tf,&fmt_s))&&(fmt_s&D3D11_FORMAT_SUPPORT_MIP_AUTOGEN)){
 			sr_ag=true;
 		}
@@ -825,8 +846,8 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 	desc.MiscFlags=(sr_ag==true?D3D11_RESOURCE_MISC_GENERATE_MIPS:0);
 	D3D11_SUBRESOURCE_DATA initData;
 	initData.pSysMem=tmp.get();
-	initData.SysMemPitch=static_cast<uint>(rp);
-	initData.SysMemSlicePitch=static_cast<uint>(i_sz);
+	initData.SysMemPitch=static_cast<krzem::uint>(rp);
+	initData.SysMemSlicePitch=static_cast<krzem::uint>(i_sz);
 	if (SUCCEEDED(this->_d3_d->CreateTexture2D(&desc,(sr_ag==true?nullptr:&initData),&this->_txl[this->_n_txl_id-1]))&&this->_txl[this->_n_txl_id-1]!=0){
 		if (sr==true){
 			this->_txsrl[this->_n_txl_id-1]=nullptr;
@@ -837,7 +858,7 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 			SRVDesc.Texture2D.MipLevels=(sr_ag==true?-1:1);
 			this->_d3_d->CreateShaderResourceView(this->_txl[this->_n_txl_id-1],&SRVDesc,&this->_txsrl[this->_n_txl_id-1]);
 			if (sr_ag==true){
-				this->_d3_dc->UpdateSubresource(this->_txl[this->_n_txl_id-1],0,nullptr,tmp.get(),static_cast<uint>(rp),static_cast<uint>(i_sz));
+				this->_d3_dc->UpdateSubresource(this->_txl[this->_n_txl_id-1],0,nullptr,tmp.get(),static_cast<krzem::uint>(rp),static_cast<krzem::uint>(i_sz));
 				this->_d3_dc->GenerateMips(this->_txsrl[this->_n_txl_id-1]);
 			}
 		}
@@ -848,13 +869,13 @@ ulong krzem::Renderer::read_texture_file(const wchar_t* fp,bool sr){
 
 
 
-void krzem::Renderer::update_constant_buffer(ulong cb_id,const void* dt){
+void krzem::Renderer::update_constant_buffer(krzem::ulong cb_id,const void* dt){
 	this->_d3_dc->UpdateSubresource(this->_cbl[cb_id],0,nullptr,dt,0,0);
 }
 
 
 
-krzem::ObjectBuffer::ObjectBufferData* krzem::Renderer::get_object_buffer(ulong ob_id){
+krzem::ObjectBuffer::ObjectBufferData* krzem::Renderer::get_object_buffer(krzem::ulong ob_id){
 	return this->_obl[ob_id]->data;
 }
 
@@ -902,22 +923,22 @@ void krzem::Renderer::set_shader_data(std::initializer_list<SHADER_DATA> dt){
 
 
 
-void krzem::Renderer::use_vertex_shader(ulong vs_id){
+void krzem::Renderer::use_vertex_shader(krzem::ulong vs_id){
 	this->_d3_dc->VSSetShader(this->_vsl[vs_id],nullptr,0);
 }
 
 
 
-void krzem::Renderer::use_pixel_shader(ulong ps_id){
+void krzem::Renderer::use_pixel_shader(krzem::ulong ps_id){
 	this->_d3_dc->PSSetShader(this->_psl[ps_id],nullptr,0);
 }
 
 
 
-void krzem::Renderer::update_object_buffer(ulong ob_id){
-	this->_obl[ob_id]->ln=uint(this->_obl[ob_id]->data->vertexes.size());
+void krzem::Renderer::update_object_buffer(krzem::ulong ob_id){
+	this->_obl[ob_id]->ln=krzem::uint(this->_obl[ob_id]->data->vertexes.size());
 	D3D11_BUFFER_DESC bd={
-		uint(this->_obl[ob_id]->data->vertexes.size())*sizeof(float),
+		krzem::uint(this->_obl[ob_id]->data->vertexes.size())*sizeof(float),
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -934,7 +955,7 @@ void krzem::Renderer::update_object_buffer(ulong ob_id){
 		std::cout<<"ERR4"<<std::endl;
 	}
 	bd.Usage=D3D11_USAGE_DEFAULT;
-	bd.ByteWidth=uint(this->_obl[ob_id]->data->indicies.size())*sizeof(ushort);
+	bd.ByteWidth=krzem::uint(this->_obl[ob_id]->data->indicies.size())*sizeof(ushort);
 	bd.BindFlags=D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags=0;
 	dt.pSysMem=this->_obl[ob_id]->data->indicies.data();
@@ -946,8 +967,8 @@ void krzem::Renderer::update_object_buffer(ulong ob_id){
 
 
 
-void krzem::Renderer::render_object_buffer(ulong ob_id){
-	uint off=0;
+void krzem::Renderer::render_object_buffer(krzem::ulong ob_id){
+	krzem::uint off=0;
 	this->_d3_dc->IASetVertexBuffers(0,1,&this->_obl[ob_id]->vb,&this->_obl[ob_id]->sz,&off);
 	this->_d3_dc->IASetIndexBuffer(this->_obl[ob_id]->ib,DXGI_FORMAT_R16_UINT,0);
 	this->_d3_dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1040,8 +1061,8 @@ void krzem::Renderer::_r(bool s){
 	this->_e(false);
 	RECT rc;
 	GetClientRect(this->_hwnd,&rc);
-	uint width=rc.right-rc.left;
-	uint height=rc.bottom-rc.top;
+	krzem::uint width=rc.right-rc.left;
+	krzem::uint height=rc.bottom-rc.top;
 	if (width<=0){
 		width=1;
 	}
@@ -1243,7 +1264,7 @@ bool krzem::Window::pressed(int c){
 
 
 
-void krzem::Window::resize(uint w,uint h){
+void krzem::Window::resize(krzem::uint w,krzem::uint h){
 
 }
 
@@ -1450,12 +1471,12 @@ krzem::Vector krzem::operator*(krzem::Vector a,krzem::Matrix b){
 
 
 std::ostream& krzem::operator<<(std::ostream& o,krzem::Vector v){
-	uint mw=std::max(std::to_string(v.x).size(),std::max(std::to_string(v.y).size(),std::max(std::to_string(v.z).size(),std::to_string(v.w).size())))+9;
-	for (uint i=0;i<(mw-10)/2;i++){
+	krzem::uint mw=std::max(std::to_string(v.x).size(),std::max(std::to_string(v.y).size(),std::max(std::to_string(v.z).size(),std::to_string(v.w).size())))+9;
+	for (krzem::uint i=0;i<(mw-19)/2;i++){
 		o<<"=";
 	}
 	o<<"> krzem::Vector <";
-	for (uint i=0;i<(mw-10)-(mw-10)/2;i++){
+	for (krzem::uint i=0;i<(mw-19)-(mw-19)/2;i++){
 		o<<"=";
 	}
 	o<<"\n  > x => "<<std::to_string(v.x)<<"\n  > y => "<<std::to_string(v.y)<<"\n  > z => "<<std::to_string(v.z)<<"\n  > w => "<<std::to_string(v.w);
@@ -1481,7 +1502,7 @@ std::ostream& krzem::operator<<(std::ostream& o,krzem::Matrix m){
 		}
 		return o;
 	};
-	auto _n=[_fs](float f,ulonglong l,bool m)->std::string{
+	auto _n=[_fs](float f,krzem::ulonglong l,bool m)->std::string{
 		std::string o(_fs(f));
 		while (o.size()<l+(f<0?1:0)){
 			o+=" ";
@@ -1489,13 +1510,13 @@ std::ostream& krzem::operator<<(std::ostream& o,krzem::Matrix m){
 		return (m==true&&f>=0?" ":"")+o;
 	};
 	bool* mn=new bool[4]{(m._00<0||m._10<0||m._20<0||m._30<0?true:false),(m._01<0||m._11<0||m._21<0||m._31<0?true:false),(m._02<0||m._12<0||m._22<0||m._32<0?true:false),(m._03<0||m._13<0||m._23<0||m._33<0?true:false)};
-	ulonglong* w=new ulonglong[4]{std::max(_fs(fabs(m._00)).size(),std::max(_fs(fabs(m._10)).size(),std::max(_fs(fabs(m._20)).size(),_fs(fabs(m._30)).size()))),std::max(_fs(fabs(m._01)).size(),std::max(_fs(fabs(m._11)).size(),std::max(_fs(fabs(m._21)).size(),_fs(fabs(m._31)).size()))),std::max(_fs(fabs(m._02)).size(),std::max(_fs(fabs(m._12)).size(),std::max(_fs(fabs(m._22)).size(),_fs(fabs(m._32)).size()))),std::max(_fs(fabs(m._03)).size(),std::max(_fs(fabs(m._13)).size(),std::max(_fs(fabs(m._23)).size(),_fs(fabs(m._33)).size())))};
-	ulonglong mw=std::max((ulonglong)10,w[0]+w[1]+w[2]+w[3]+(mn[0]==true?1:0)+(mn[1]==true?1:0)+(mn[2]==true?1:0)+(mn[3]==true?1:0)+3);
-	for (uint i=0;i<(mw-10)/2;i++){
+	krzem::ulonglong* w=new krzem::ulonglong[4]{std::max(_fs(fabs(m._00)).size(),std::max(_fs(fabs(m._10)).size(),std::max(_fs(fabs(m._20)).size(),_fs(fabs(m._30)).size()))),std::max(_fs(fabs(m._01)).size(),std::max(_fs(fabs(m._11)).size(),std::max(_fs(fabs(m._21)).size(),_fs(fabs(m._31)).size()))),std::max(_fs(fabs(m._02)).size(),std::max(_fs(fabs(m._12)).size(),std::max(_fs(fabs(m._22)).size(),_fs(fabs(m._32)).size()))),std::max(_fs(fabs(m._03)).size(),std::max(_fs(fabs(m._13)).size(),std::max(_fs(fabs(m._23)).size(),_fs(fabs(m._33)).size())))};
+	krzem::ulonglong mw=std::max((krzem::ulonglong)19,w[0]+w[1]+w[2]+w[3]+(mn[0]==true?1:0)+(mn[1]==true?1:0)+(mn[2]==true?1:0)+(mn[3]==true?1:0)+3);
+	for (krzem::uint i=0;i<(mw-19)/2;i++){
 		o<<"=";
 	}
 	o<<"> krzem::Matrix <";
-	for (uint i=0;i<(mw-10)-(mw-10)/2;i++){
+	for (krzem::uint i=0;i<(mw-19)-(mw-19)/2;i++){
 		o<<"=";
 	}
 	o<<"\n"<<_n(m._00,w[0],mn[0])<<" "<<_n(m._01,w[1],mn[1])<<" "<<_n(m._02,w[2],mn[2])<<" "<<_n(m._03,w[3],mn[3])<<"\n"<<_n(m._10,w[0],mn[0])<<" "<<_n(m._11,w[1],mn[1])<<" "<<_n(m._12,w[2],mn[2])<<" "<<_n(m._13,w[3],mn[3])<<"\n"<<_n(m._20,w[0],mn[0])<<" "<<_n(m._21,w[1],mn[1])<<" "<<_n(m._22,w[2],mn[2])<<" "<<_n(m._23,w[3],mn[3])<<"\n"<<_n(m._30,w[0],mn[0])<<" "<<_n(m._31,w[1],mn[1])<<" "<<_n(m._32,w[2],mn[2])<<" "<<_n(m._33,w[3],mn[3]);
@@ -1504,7 +1525,7 @@ std::ostream& krzem::operator<<(std::ostream& o,krzem::Matrix m){
 
 
 
-long_ptr krzem::_msg_cb(HWND hwnd,uint msg,uint_ptr wp,long_ptr lp){
+krzem::long_ptr krzem::_msg_cb(HWND hwnd,krzem::uint msg,krzem::uint_ptr wp,krzem::long_ptr lp){
 	switch (msg){
 		case WM_CREATE:
 			PostMessage(hwnd,WM_CREATE_RENDERER,0,0);

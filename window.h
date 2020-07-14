@@ -14,8 +14,8 @@
 
 #define WM_CREATE_RENDERER (WM_APP+0x0001)
 #define WM_SHOW_CURSOR (WM_APP+0x0002)
-#if (_WIN32_WINNT>=0x0602)&&!defined(DXGI_1_2_FORMATS)
-	#define DXGI_1_2_FORMATS
+#if (_WIN32_WINNT>=0x0602)&&!defined(DXGI_EXTENDED_FORMATS)
+	#define DXGI_EXTENDED_FORMATS
 #endif
 #ifndef UNICODE
 	#define UNICODE
@@ -215,6 +215,8 @@ namespace krzem{
 			Camera();
 			~Camera();
 			void set_window(Window* w);
+			void set_pos(float x,float y,float z);
+			void set_rot(float rx,float ry,float rz);
 			void update(double dt);
 			void reset();
 		private:
@@ -376,7 +378,7 @@ namespace krzem{
 		{GUID_WICPixelFormat4bppGray,GUID_WICPixelFormat8bppGray},
 		{GUID_WICPixelFormat16bppGrayFixedPoint,GUID_WICPixelFormat16bppGrayHalf},
 		{GUID_WICPixelFormat32bppGrayFixedPoint,GUID_WICPixelFormat32bppGrayFloat},
-	#ifdef DXGI_1_2_FORMATS
+	#ifdef DXGI_EXTENDED_FORMATS
 		{GUID_WICPixelFormat16bppBGR555,GUID_WICPixelFormat16bppBGRA5551},
 	#else
 		{GUID_WICPixelFormat16bppBGR555,GUID_WICPixelFormat32bppRGBA},
@@ -409,7 +411,7 @@ namespace krzem{
 		{GUID_WICPixelFormat64bppCMYK,GUID_WICPixelFormat64bppRGBA},
 		{GUID_WICPixelFormat40bppCMYKAlpha,GUID_WICPixelFormat64bppRGBA},
 		{GUID_WICPixelFormat80bppCMYKAlpha,GUID_WICPixelFormat64bppRGBA},
-	#ifdef DXGI_1_2_FORMATS
+	#ifdef DXGI_EXTENDED_FORMATS
 		{GUID_WICPixelFormat32bppRGB,GUID_WICPixelFormat32bppRGBA},
 		{GUID_WICPixelFormat64bppRGB,GUID_WICPixelFormat64bppRGBA},
 		{GUID_WICPixelFormat64bppPRGBAHalf,GUID_WICPixelFormat64bppRGBAHalf},
@@ -425,7 +427,7 @@ namespace krzem{
 		{GUID_WICPixelFormat32bppRGBA1010102XR,DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM},
 		{GUID_WICPixelFormat32bppRGBA1010102,DXGI_FORMAT_R10G10B10A2_UNORM},
 		{GUID_WICPixelFormat32bppRGBE,DXGI_FORMAT_R9G9B9E5_SHAREDEXP},
-	#ifdef DXGI_1_2_FORMATS
+	#ifdef DXGI_EXTENDED_FORMATS
 		{GUID_WICPixelFormat16bppBGRA5551,DXGI_FORMAT_B5G5R5A1_UNORM},
 		{GUID_WICPixelFormat16bppBGR565,DXGI_FORMAT_B5G6R5_UNORM},
 	#endif
@@ -434,7 +436,7 @@ namespace krzem{
 		{GUID_WICPixelFormat16bppGray,DXGI_FORMAT_R16_UNORM},
 		{GUID_WICPixelFormat8bppGray,DXGI_FORMAT_R8_UNORM},
 		{GUID_WICPixelFormat8bppAlpha,DXGI_FORMAT_A8_UNORM},
-	#ifdef DXGI_1_2_FORMATS
+	#ifdef DXGI_EXTENDED_FORMATS
 		{GUID_WICPixelFormat96bppRGBFloat,DXGI_FORMAT_R32G32B32_FLOAT},
 	#endif
 	};
