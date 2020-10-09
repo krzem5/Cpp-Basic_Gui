@@ -1085,8 +1085,7 @@ void krzem::Renderer::_r(bool s){
 	hr=dxgi_f->QueryInterface(__uuidof(IDXGIFactory2),reinterpret_cast<void**>(&dxgi_f2));
 	if (dxgi_f2!=nullptr){
 		hr=this->_d3_d->QueryInterface(__uuidof(ID3D11Device1),reinterpret_cast<void**>(&this->_d3_d1));
-		if (SUCCEEDED(hr)){
-			(void)this->_d3_dc->QueryInterface(__uuidof(ID3D11DeviceContext1),reinterpret_cast<void**>(&this->_d3_dc1));
+		if (SUCCEEDED(hr)){(void)this->_d3_dc->QueryInterface(__uuidof(ID3D11DeviceContext1),reinterpret_cast<void**>(&this->_d3_dc1));
 		}
 		DXGI_SWAP_CHAIN_DESC1 sc_d={
 			width,
