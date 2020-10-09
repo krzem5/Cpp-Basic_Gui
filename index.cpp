@@ -122,7 +122,6 @@ void u_cb(Window* w,double dt){
 	obj.data[0].nt=Matrix::x_rotation_matrix(PI/(1+exp(-canon_t)));
 	OBJFile::draw(obj,&w->renderer,1);
 	w->renderer.show();
-	std::cout<<obj.data_sz<<"\n";
 	if (w->pressed(0x1b)==true){
 		w->close();
 	}
